@@ -9,6 +9,7 @@ DirectorOptions <-
 	cm_AllowPillConversion = 0
 	
 	cp_thar_be_weapons_to_convert = 0
+	cp_get_default_item_cnt = 0
 	cp_weapon_sighted_time = 0
 	
 	weaponsToConvert =
@@ -65,12 +66,24 @@ DirectorOptions <-
 		"weapon_pain_pills",
 		"weapon_pistol",
 	]
+	DefaultMainWeapon = 
+	[
+		"weapon_smg",
+		"weapon_smg",
+		"weapon_smg_silenced",
+		"weapon_shotgun_chrome",
+	]
 
+	
 	function GetDefaultItem( idx )
 	{
+		//Msg("GetDefaultItem called with idx "+idx+"\n");
 		if ( idx < DefaultItems.len() )
 		{
 			return DefaultItems[idx];
+		} else if (idx == 2 && cp_get_default_item_cnt < DefaultMainWeapon.len())
+		{
+			return DefaultMainWeapon[cp_get_default_item_cnt++];
 		}
 		return 0;
 	}
@@ -86,10 +99,12 @@ function OnRoundStart()
 	while(ent != null)
 	{
 		classname<-ent.GetClassname();
-		if ( classname in weaponsToConvert )
+		if ( classname == "weapon_spawn" )
 		{
-			Msg(entcnt+". "+ent.GetClassname()+"\n");
-			//EntFire(ent, "kill", ....);
+			Msg(entcnt+". "+classname+" to junk\n");
+			//EntFire(ent, "kill");
+			//ent.__KeyValueFromString("model", "mymodel");
+			//ent.__KeyValueFromString("classname", 
 		}
 		ent=Entities.Next(ent);
 		entcnt++;
