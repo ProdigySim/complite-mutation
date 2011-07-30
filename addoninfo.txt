@@ -1,0 +1,11 @@
+"AddonInfo"
+{
+	addonSteamAppID		550
+	addonversion		1
+	addontitle		"CompLite Mutation"
+	addonauthor		"ProdigySim"
+	addontagline		"You got your Confogl in my Vanilla"
+	addonDescription	"A competitive mutation. Gamemode name complite"
+	addonURL0 		"http://prodigysim.com/"
+	addonContent_Script 1          // Has Scripts 
+}
