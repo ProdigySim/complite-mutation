@@ -81,9 +81,9 @@ DirectorOptions <-
 		if ( idx < DefaultItems.len() )
 		{
 			return DefaultItems[idx];
-		} else if (idx == 2 && cp_get_default_item_cnt < DefaultMainWeapon.len())
+		} else if (idx == 2)
 		{
-			return DefaultMainWeapon[cp_get_default_item_cnt++];
+			return DefaultMainWeapon[cp_get_default_item_cnt++ % 4];
 		}
 		return 0;
 	}
