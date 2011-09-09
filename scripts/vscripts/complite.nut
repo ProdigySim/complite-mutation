@@ -8,9 +8,7 @@ DirectorOptions <-
 	cm_ProhibitBosses = 0
 	cm_AllowPillConversion = 0
 	
-	cp_thar_be_weapons_to_convert = 0
 	cp_get_default_item_cnt = 0
-	cp_weapon_sighted_time = 0
 	
 	weaponsToConvert =
 	{
@@ -26,10 +24,10 @@ DirectorOptions <-
 
 	function ConvertWeaponSpawn( classname )
 	{
-//		Msg("Found an instance of "+classname+"\n");
+		Msg("Found an instance of "+classname+"\n");
 		if ( classname in weaponsToConvert )
 		{
-//			Msg("Converting to "+weaponsToConvert[classname]+"\n");
+			Msg("Converting to "+weaponsToConvert[classname]+"\n");
 			return weaponsToConvert[classname];
 		}
 		return 0;
@@ -52,12 +50,7 @@ DirectorOptions <-
 		{
 			return false;
 		}
-		if ( classname in weaponsToConvert )
-		{
-			Msg("Despised "+classname+" is about to spawn at "+Time()+"!\n");
-			cp_thar_be_weapons_to_convert = 1
-			cp_weapon_sighted_time = Time()
-		}
+
 		return true;
 	}		
 
@@ -91,6 +84,8 @@ DirectorOptions <-
 }
 
 
+// This function was an attempt to work around ConvertWeaponSpawn() not triggering on dynamic weapon spawns.
+/*
 function OnRoundStart()
 {
 	Msg("Complite OnRoundStart()");
@@ -110,6 +105,7 @@ function OnRoundStart()
 		entcnt++;
 	}
 }
+
 function Update()
 {
 	if ( DirectorOptions.cp_thar_be_weapons_to_convert == 1 && DirectorOptions.cp_weapon_sighted_time < Time()-1 )
@@ -119,3 +115,4 @@ function Update()
 		OnRoundStart()
 	}
 }
+*/
