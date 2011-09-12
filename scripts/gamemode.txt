@@ -40,6 +40,10 @@
 			"z_jockey_control_variance" 0.15
 			"z_finale_spawn_safety_range" 150
 			"z_gun_swing_vs_min_penalty" 2
+			
+			// Mega mob size should be intact for 360. (25)
+			"360_z_mob_spawn_min_size" 18
+			"360_z_mob_spawn_max_size" 18
 		}
 	}
 }
