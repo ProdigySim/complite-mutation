@@ -18,7 +18,7 @@ DirectorOptions <-
 		weapon_rifle_ak47		= "weapon_smg_silenced_spawn"
 		weapon_sniper_military	= "weapon_hunting_rifle_spawn"
 		weapon_sniper_awp 		= "weapon_hunting_rifle_spawn"
-        weapon_sniper_scout     = "weapon_hunting_rifle_spawn"
+		weapon_sniper_scout     = "weapon_hunting_rifle_spawn"
 	}
 
 	function ConvertWeaponSpawn( classname )
