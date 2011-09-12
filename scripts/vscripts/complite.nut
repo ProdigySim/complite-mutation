@@ -39,6 +39,7 @@ DirectorOptions <-
 		weapon_chainsaw = 0
 		weapon_first_aid_kit = 0
 		weapon_rifle_m60 = 0
+		upgrade_item = 0
 	}	
 
 	function AllowWeaponSpawn( classname )
