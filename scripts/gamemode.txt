@@ -8,6 +8,8 @@
 		
 		convar
 		{
+            "sv_infected_ceda_vomitjar_probability" 0
+            "z_fallen_max_count" 0
 			"gascan_spit_time" 2
 			"z_mob_spawn_min_size" 25
 			"z_mob_spawn_max_size" 25
@@ -27,7 +29,7 @@
 			"versus_tank_chance_finale" 1
 			"versus_tank_chance_intro" 1
 			"versus_tank_flow_team_variation" 0
-			"versus_witch_chance" 1
+			"versus_witch_chance" 0.75
 			"versus_witch_chance_finale" 0
 			"versus_witch_chance_intro" 0
 			"versus_boss_flow_max" 0.9
@@ -38,6 +40,8 @@
 			"z_witch_personal_space" 240
 			"z_leap_interval_post_incap" 15
 			"z_jockey_control_variance" 0.15
+            "z_finale_spawn_safety_range" 150
+            "z_gun_swing_vs_min_penalty" 0
 		}
 	}
 }
