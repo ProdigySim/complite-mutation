@@ -8,6 +8,10 @@ DirectorOptions <-
 	cm_ProhibitBosses = 0
 	cm_AllowPillConversion = 0
 	
+	cached_tank_state = 0
+	new_round_start = 0
+	round_start_time = 0
+
 	weaponsToConvert =
 	{
 		weapon_autoshotgun 		= "weapon_pumpshotgun_spawn"
@@ -44,6 +48,9 @@ DirectorOptions <-
 
 	function AllowWeaponSpawn( classname )
 	{
+		new_round_start = 1
+		round_start_time = Time()
+
 		if ( classname in weaponsToRemove )
 		{
 			return false;
@@ -70,5 +77,35 @@ DirectorOptions <-
 
 }
 
+function OnRoundStart()
+{
+        Msg("Complite OnRoundStart()");
+        ent <- Entities.First();
+        entcnt<-1;
+        while(ent != null)
+        {
+                Msg(entcnt+". "+ent.GetClassname()+"\n");
+                ent=Entities.Next(ent);
+                entcnt++;
+        }
+}
 
 
+Update()
+{
+	if(DirectorOptions.new_round_start == 1 && DirectorOptions.round_start_time < Time()-1)
+	{
+		DirectorOptions.new_round_start = 0
+		OnRoundStart()		
+	}
+	if(Director.IsTankInPlay() && DirectorOptions.cached_tank_state == 0)
+	{
+		cached_tank_state = 1
+		DirectorOptions.SpitterLimit = 0;
+	}
+	else if(!Director.IsTankInPlay() && DirectorOptions.cached_tank_state == 1)
+	{
+		cached_tank_state = 0
+		DirectorOptions.SpitterLimit = 1;
+	}
+}
