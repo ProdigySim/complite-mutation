@@ -80,18 +80,26 @@ DirectorOptions <-
 function OnRoundStart()
 {
         Msg("Complite OnRoundStart()");
+        
+        DirectorOptions.SpitterLimit = 1
+        
         ent <- Entities.First();
         entcnt<-1;
         while(ent != null)
         {
                 Msg(entcnt+". "+ent.GetClassname()+"\n");
+                if(ent.GetClassname() == "func_playerinfected_clip")
+                {
+                    Msg("Killing...\n");
+                    DoEntFire("!activator", "kill", "", 0, ent, null);
+                }
                 ent=Entities.Next(ent);
                 entcnt++;
         }
 }
 
 
-Update()
+function Update()
 {
 	if(DirectorOptions.new_round_start == 1 && DirectorOptions.round_start_time < Time()-1)
 	{
@@ -100,12 +108,12 @@ Update()
 	}
 	if(Director.IsTankInPlay() && DirectorOptions.cached_tank_state == 0)
 	{
-		cached_tank_state = 1
-		DirectorOptions.SpitterLimit = 0;
+        Msg("Tank Spawned\n");
+		DirectorOptions.cached_tank_state = 1
 	}
 	else if(!Director.IsTankInPlay() && DirectorOptions.cached_tank_state == 1)
 	{
-		cached_tank_state = 0
-		DirectorOptions.SpitterLimit = 1;
+        Msg("Tank Left Play\n");
+		DirectorOptions.cached_tank_state = 0
 	}
 }
