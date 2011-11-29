@@ -9,6 +9,7 @@
 		convar
 		{
 			"sv_infected_ceda_vomitjar_probability" 0
+            "sv_infected_riot_control_tonfa_probability" 0
 			"z_fallen_max_count" 0
 			"gascan_spit_time" 2
 			"z_mob_spawn_min_size" 25
@@ -16,6 +17,7 @@
 			"z_mob_spawn_min_interval_normal" 100
 			"z_mob_spawn_max_interval_normal" 100
 			"ammo_shotgun_max" 80
+            "ammo_huntingrifle_max" 90
 			"sv_force_time_of_day" 0
 			"z_ghost_delay_min" 20
 			"z_ghost_delay_max" 20
@@ -39,7 +41,7 @@
 			"z_leap_interval_post_incap" 15
 			"z_jockey_control_variance" 0.15
 			"z_finale_spawn_safety_range" 150
-			"z_gun_swing_vs_min_penalty" 2
+			"z_gun_swing_vs_min_penalty" 1
 			
 			// Mega mob size should be intact for 360. (25)
 			"360_z_mob_spawn_min_size" 18
