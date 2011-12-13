@@ -174,7 +174,7 @@ function OnRoundStart()
         }
 }
 
-
+turned_on_c6m3_survivors <- false;
 function Update()
 {
     if(DirectorOptions.new_round_start == 1 && DirectorOptions.round_start_time < Time()-1)
@@ -182,6 +182,12 @@ function Update()
         DirectorOptions.new_round_start = 0
         OnRoundStart()        
     }
+    if(!turned_on_c6m3_survivors && Director.HasAnySurvivorLeftSafeArea())
+	{
+		EntFire("l4d1_survivors_relay","enable");
+		EntFire("l4d1_survivors_relay","trigger");
+		turned_on_c6m3_survivors = true;
+	}
     /* This was fun, but wasn't useful */
     /*
     if(Director.IsTankInPlay() && DirectorOptions.cached_tank_state == 0)
