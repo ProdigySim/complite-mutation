@@ -1,12 +1,12 @@
 //-----------------------------------------------------
 Msg("Activating Mutation CompLite\n");
 
-
 class MapInfo {
     function IdentifyMap(EntList)
     {
-         isIntro = EntList.FindByName(null, "fade_intro") != null 
-            && EntList.FindByName(null, "lcs_intro") != null;
+        isIntro = EntList.FindByName(null, "fade_intro") != null 
+            || EntList.FindByName(null, "lcs_intro") != null;
+        //Msg("Indentified map as intro? "+isIntro+".\n");
     }
     isIntro = false
     isFinale = false
@@ -23,11 +23,20 @@ DirectorOptions <-
     cm_AllowPillConversion = 0
     
 //  cached_tank_state = 0
-    new_round_start = 0
+    new_round_start = false
     round_start_time = 0
-    gave_out_hunny = 0
     
     mapinfo = MapInfo()
+    
+    function NewRoundCheck()
+    {
+        if(!new_round_start)
+        {
+            new_round_start = true
+            round_start_time = Time()
+            mapinfo.IdentifyMap(Entities)
+        }
+    }
     
     weaponsToConvert =
     {
@@ -37,6 +46,7 @@ DirectorOptions <-
         weapon_rifle_desert     = "weapon_smg_spawn"
         weapon_rifle_sg552      = "weapon_smg_mp5_spawn"
         weapon_rifle_ak47       = "weapon_smg_silenced_spawn"
+        weapon_hunting_rifle    = "weapon_smg_silenced_spawn"
         weapon_sniper_military  = "weapon_shotgun_chrome_spawn"
         weapon_sniper_awp       = "weapon_shotgun_chrome_spawn"
         weapon_sniper_scout     = "weapon_pumpshotgun_spawn"
@@ -45,6 +55,7 @@ DirectorOptions <-
 
     function ConvertWeaponSpawn( classname )
     {
+        NewRoundCheck()
         if ( classname in weaponsToConvert )
         {
             //Msg("Converting"+classname+" to "+weaponsToConvert[classname]+"\n")
@@ -68,7 +79,6 @@ DirectorOptions <-
         weapon_vomitjar = 1
         weapon_propanetank = 0
         weapon_oxygentank = 0
-        weapon_hunting_rifle = 0
         weapon_rifle_m60 = 0
         weapon_first_aid_kit = -5
         upgrade_item = 0
@@ -76,12 +86,14 @@ DirectorOptions <-
 
     function AllowWeaponSpawn( classname )
     {
-        new_round_start = 1
-        round_start_time = Time()
-        mapinfo.IdentifyMap(Entities)
+        NewRoundCheck()
         
         if ( classname in weaponsToRemove )
         {
+            if(classname == "weapon_hunting_rifle")
+            {
+                Msg("Found a HR! Voting no!\n");
+            }
             if(weaponsToRemove[classname] > 0)
             {
                 //Msg("Found a "+classname+" to keep, "+weaponsToRemove[classname]+" remain.\n");
@@ -112,13 +124,13 @@ DirectorOptions <-
     
     function GetDefaultItem( idx )
     {
-        //Msg("GetDefaultItem"+idx+"\n");
+        NewRoundCheck()
+
         if ( idx < DefaultItems.len() )
         {
             return DefaultItems[idx];
-        } else if(gave_out_hunny == 0 && !mapinfo.isIntro && idx == DefaultItems.len())
+        } else if(!mapinfo.isIntro && idx == DefaultItems.len())
         {
-            gave_out_hunny = 1
             return "weapon_hunting_rifle"; // give out the hunny rifle
         }
         return 0;
@@ -129,7 +141,9 @@ DirectorOptions <-
 function OnRoundStart()
 {
         Msg("Complite OnRoundStart()\n");
-        
+        // This will run multiple times per round in certain cases...
+        // Notably, on natural map switch (transition) e.g. chapter 1 ends, start chapter 2.
+        // Just make sure you don't screw up anything...
         
         // We do a roundstart remove of these items to keep the removals from being too greedy. Health items are odd.
         // Melee weapons work better here, too. Plus we get the chance to set their count!
@@ -142,6 +156,7 @@ function OnRoundStart()
             weapon_molotov_spawn = -1
             weapon_vomitjar_spawn = -1
             weapon_pipebomb_spawn = -1
+            weapon_hunting_rifle = 1
         }
         ent <- Entities.First();
         entcnt<-1;
@@ -174,31 +189,11 @@ function OnRoundStart()
         }
 }
 
-turned_on_c6m3_survivors <- false;
 function Update()
 {
-    if(DirectorOptions.new_round_start == 1 && DirectorOptions.round_start_time < Time()-1)
+    if(DirectorOptions.new_round_start && DirectorOptions.round_start_time < Time()-1)
     {
-        DirectorOptions.new_round_start = 0
+        DirectorOptions.new_round_start = false
         OnRoundStart()        
     }
-    if(!turned_on_c6m3_survivors && Director.HasAnySurvivorLeftSafeArea())
-	{
-		EntFire("l4d1_survivors_relay","enable");
-		EntFire("l4d1_survivors_relay","trigger");
-		turned_on_c6m3_survivors = true;
-	}
-    /* This was fun, but wasn't useful */
-    /*
-    if(Director.IsTankInPlay() && DirectorOptions.cached_tank_state == 0)
-    {
-        Msg("Tank Spawned\n");
-        DirectorOptions.cached_tank_state = 1
-    }
-    else if(!Director.IsTankInPlay() && DirectorOptions.cached_tank_state == 1)
-    {
-        Msg("Tank Left Play\n");
-        DirectorOptions.cached_tank_state = 0
-    }
-    */
 }
