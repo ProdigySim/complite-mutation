@@ -74,9 +74,9 @@ DirectorOptions <-
         weapon_upgradepack_incendiary = 0
         weapon_upgradepack_explosive = 0
         weapon_chainsaw = 0
-        weapon_molotov = 1
-        weapon_pipe_bomb = 1
-        weapon_vomitjar = 1
+        weapon_molotov = 3
+        weapon_pipe_bomb = 3
+        weapon_vomitjar = 3
         weapon_propanetank = 0
         weapon_oxygentank = 0
         weapon_rifle_m60 = 0
