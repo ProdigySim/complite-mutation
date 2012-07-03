@@ -121,7 +121,59 @@ class MsgGSL extends GameStateListener
 	function OnSpawnedPCZ(id) { Msg("MsgGSL: OnSpawnedPCZ("+id+")\n"); }
 }
 
+class TimerCallback
+{
+	function OnTimerElapsed() {}
+}
 
+class GlobalTimer
+{
+	function GetCurrentTime() { return Time(); }
+	function Update()
+	{
+		while(m_cbtimes.len() && m_cbtimes[0] < GetCurentTime())
+		{
+			m_callbacks[0].OnTimerElapsed();
+			m_callbacks.remove(0);
+			m_cbtimes.remove(0);
+		}
+	}
+	function AddTimer(time, timer)
+	{
+		local cbtime = GetCurrentTime() + time;
+		// Insert sorted Ascending into callbacks list
+		local i = 0;
+		while(i < m_callbacks.len() && cbtimes[i] < cbtime) i++;
+		if(i == m_callbacks.len())
+		{
+			m_callbacks.push(timer);
+			m_cbtimes.push(cbtime);
+		}
+		else
+		{
+			m_callbacks.insert(i,timer);
+			m_cbtimes.insert(i,cbtime);
+		}
+	}
+
+	m_callbacks = [];
+	m_cbtimes = [];
+}
+
+class GlobalFrameTimer extends GlobalTimer
+{
+	function GetCurrentTime()
+	{
+		return m_curFrame;
+	}
+	// Integer overflow after 180+ hours on the round?
+	function Update()
+	{
+		m_curFrame++;
+		::GlobalSecondsTimer.Update();
+	}
+	m_curFrame = 0;
+}
 
 class MapInfo {
 	function IdentifyMap(EntList)
@@ -154,7 +206,11 @@ DirectorOptions <-
 	cm_ProhibitBosses = 0
 	cm_AllowPillConversion = 0
 
-	SpitterLimit = 1
+	MobSpawnMinTime <- 100;
+	MobSpawnMaxTime <- 100;
+	MobSpawnSize <- 25;
+	if(Director.IsPlayingOnConsole()) MobSpawnSize = 18;
+	SpitterLimit <- 1
 
 //  cached_tank_state = 0
 	new_round_start = false
@@ -337,12 +393,72 @@ class NoSpittersDuringTank extends GameStateListener
 	m_spitlimit = 0;
 }
 
+class NoNaturalMobDuringTank extends GameStateListener
+{
+	class MyTimerCB extends TimerCallback
+	{
+		constructor(parent)
+		{
+			m_parent = parent;
+		}
+		function OnTimerElapsed()
+		{
+			m_parent.PostMobReset();
+		}
+		m_parent;
+	}
+	constructor(director, director_opts, timer)
+	{
+		m_director = director;
+		m_dopts = director_opts;
+		m_timer = timer;
+		m_timercb = MyTimerCB(this)
+	}
+	function OnTankEntersPlay()
+	{
+		
+		m_oldMinTime = m_dopts.MobSpawnMinTime;
+		m_oldMaxTime = m_dopts.MobSpawnMaxTime;
+
+		m_dopts.MobSpawnMinTime = 99999;
+		m_dopts.MobSpawnMaxTime = 99999;
+	}
+	function ZeroMobReset()
+	{
+		m_oldSize = m_dopts.MobSpawnSize;
+		m_dopts.MobSpawnSize = 0
+		m_director.ResetMobTimer();
+		m_timer.AddTimer(1, PostMobReset)
+	}
+	function PostMobReset()
+	{
+		m_dopts.MobSpawnSize = m_oldSize;
+	}
+	function OnTankLeavesPlay()
+	{
+		m_dopts.MobSpawnMinTime = m_oldMinTime;
+		m_dopts.MobSpawnMaxTime = m_oldMaxTime;
+	}
+	m_oldSize = 0;
+	m_oldMinTime = 0;
+	m_oldMaxTime = 0;
+	m_director = null;
+	m_dopts = null;
+	m_timer = null;
+}
+
+
+g_FrameTimer <- GlobalFrameTimer();
+g_Timer <- GlobalSecondsTimer();
+
 g_gsc <- GameStateController();
 g_gsm <- GameStateModel(g_gsc);
 DirectorOptions.RegisterGSC(g_gsc);
 g_gsc.AddListener(MsgGSL());
 g_gsc.AddListener(NoSpittersDuringTank(DirectorOptions));
+g_gsc.AddListener(NoNaturalMobDuringTank(Director, DirectorOptions, g_FrameTimer));
 Msg("GSC/M/L Script run.\n");
+
 
 function OnRoundStart()
 {
@@ -397,6 +513,8 @@ function OnRoundStart()
 
 function Update()
 {
+	g_Timer.Update();
+	g_FrameTimer.Update();
 	if(DirectorOptions.new_round_start && DirectorOptions.round_start_time < Time()-1)
 	{
 		DirectorOptions.new_round_start = false
