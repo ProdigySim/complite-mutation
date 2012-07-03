@@ -342,7 +342,7 @@ DirectorOptions <-
 
 if(Director.IsPlayingOnConsole()) DirectorOptions.MobSpawnSize = 18;
 
-class NoSpittersDuringTank extends GameStateListener
+class SpitterControl extends GameStateListener
 {
 	constructor(director_opts)
 	{
@@ -468,7 +468,7 @@ g_gsc <- GameStateController();
 g_gsm <- GameStateModel(g_gsc);
 DirectorOptions.RegisterGSC(g_gsc);
 g_gsc.AddListener(MsgGSL());
-g_gsc.AddListener(NoSpittersDuringTank(DirectorOptions));
+g_gsc.AddListener(SpitterControl(DirectorOptions));
 g_gsc.AddListener(MobControl(DirectorOptions, g_MobResetti));
 Msg("GSC/M/L Script run.\n");
 
