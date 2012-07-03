@@ -126,12 +126,12 @@ class TimerCallback
 	function OnTimerElapsed() {}
 }
 
-class GlobalTimer
+class ::GlobalTimer
 {
 	function GetCurrentTime() { return Time(); }
 	function Update()
 	{
-		while(m_cbtimes.len() && m_cbtimes[0] < GetCurentTime())
+		while(m_cbtimes.len() && m_cbtimes[0] < GetCurrentTime())
 		{
 			m_callbacks[0].OnTimerElapsed();
 			m_callbacks.remove(0);
@@ -170,7 +170,7 @@ class GlobalFrameTimer extends GlobalTimer
 	function Update()
 	{
 		m_curFrame++;
-		::GlobalSecondsTimer.Update();
+		::GlobalTimer.Update();
 	}
 	m_curFrame = 0;
 }
@@ -206,11 +206,10 @@ DirectorOptions <-
 	cm_ProhibitBosses = 0
 	cm_AllowPillConversion = 0
 
-	MobSpawnMinTime <- 100;
-	MobSpawnMaxTime <- 100;
-	MobSpawnSize <- 25;
-	if(Director.IsPlayingOnConsole()) MobSpawnSize = 18;
-	SpitterLimit <- 1
+	MobSpawnMinTime = 100
+	MobSpawnMaxTime = 100
+	MobSpawnSize = 25
+	SpitterLimit = 1
 
 //  cached_tank_state = 0
 	new_round_start = false
@@ -341,6 +340,8 @@ DirectorOptions <-
 
 }
 
+if(Director.IsPlayingOnConsole()) DirectorOptions.MobSpawnSize = 18;
+
 class NoSpittersDuringTank extends GameStateListener
 {
 	constructor(director_opts)
@@ -393,70 +394,82 @@ class NoSpittersDuringTank extends GameStateListener
 	m_spitlimit = 0;
 }
 
-class NoNaturalMobDuringTank extends GameStateListener
+
+class ZeroMobReset extends TimerCallback
 {
-	class MyTimerCB extends TimerCallback
-	{
-		constructor(parent)
-		{
-			m_parent = parent;
-		}
-		function OnTimerElapsed()
-		{
-			m_parent.PostMobReset();
-		}
-		m_parent;
-	}
-	constructor(director, director_opts, timer)
+	constructor(director, dopts, timer)
 	{
 		m_director = director;
-		m_dopts = director_opts;
+		m_dopts = dopts;
 		m_timer = timer;
-		m_timercb = MyTimerCB(this)
-	}
-	function OnTankEntersPlay()
-	{
-		
-		m_oldMinTime = m_dopts.MobSpawnMinTime;
-		m_oldMaxTime = m_dopts.MobSpawnMaxTime;
-
-		m_dopts.MobSpawnMinTime = 99999;
-		m_dopts.MobSpawnMaxTime = 99999;
 	}
 	function ZeroMobReset()
 	{
+		if(m_bResetInProgress) return;
+		Msg("ZeroMobReset()\n");
 		m_oldSize = m_dopts.MobSpawnSize;
 		m_dopts.MobSpawnSize = 0
 		m_director.ResetMobTimer();
-		m_timer.AddTimer(1, PostMobReset)
+		m_timer.AddTimer(1, this)
+		m_bResetInProgress = true;
 	}
-	function PostMobReset()
+	function OnTimerElapsed()
 	{
 		m_dopts.MobSpawnSize = m_oldSize;
+		m_bResetInProgress = false;
 	}
-	function OnTankLeavesPlay()
-	{
-		m_dopts.MobSpawnMinTime = m_oldMinTime;
-		m_dopts.MobSpawnMaxTime = m_oldMaxTime;
-	}
+	m_bResetInProgress = false;
 	m_oldSize = 0;
-	m_oldMinTime = 0;
-	m_oldMaxTime = 0;
 	m_director = null;
 	m_dopts = null;
 	m_timer = null;
 }
 
+class MobControl extends GameStateListener
+{
+	constructor(director_opts, mobresetti)
+	{
+		m_dopts = director_opts;
+		m_resetti = mobresetti;
+	}
+	function OnSafeAreaOpened() 
+	{
+		m_resetti.ZeroMobReset();
+	}
+	function OnTankEntersPlay()
+	{
+		m_oldMinTime = m_dopts.MobSpawnMinTime;
+		m_oldMaxTime = m_dopts.MobSpawnMaxTime;
 
+		m_dopts.MobSpawnMinTime = 99999;
+		m_dopts.MobSpawnMaxTime = 99999;
+
+		m_resetti.ZeroMobReset();
+	}
+	function OnTankLeavesPlay()
+	{
+		m_dopts.MobSpawnMinTime = m_oldMinTime;
+		m_dopts.MobSpawnMaxTime = m_oldMaxTime;
+
+		m_resetti.ZeroMobReset();
+	}
+	m_oldMinTime = 0;
+	m_oldMaxTime = 0;
+	m_dopts = null;
+	m_resetti = null;
+}
+
+g_Timer <- GlobalTimer();
 g_FrameTimer <- GlobalFrameTimer();
-g_Timer <- GlobalSecondsTimer();
+
+g_MobResetti <- ZeroMobReset(Director, DirectorOptions, g_FrameTimer);
 
 g_gsc <- GameStateController();
 g_gsm <- GameStateModel(g_gsc);
 DirectorOptions.RegisterGSC(g_gsc);
 g_gsc.AddListener(MsgGSL());
 g_gsc.AddListener(NoSpittersDuringTank(DirectorOptions));
-g_gsc.AddListener(NoNaturalMobDuringTank(Director, DirectorOptions, g_FrameTimer));
+g_gsc.AddListener(MobControl(DirectorOptions, g_MobResetti));
 Msg("GSC/M/L Script run.\n");
 
 
