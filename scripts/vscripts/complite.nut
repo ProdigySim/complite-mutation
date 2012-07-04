@@ -486,6 +486,10 @@ class MobControl extends GameStateListener
 
 class ItemControl extends GameStateListener
 {
+	constructor(entlist)
+	{
+		m_entlist = entlist;
+	}
 	function OnRoundStart()
 	{
 		Msg("Complite OnRoundStart()\n");
@@ -493,7 +497,7 @@ class ItemControl extends GameStateListener
 		// Notably, on natural map switch (transition) e.g. chapter 1 ends, start chapter 2.
 		// Just make sure you don't screw up anything...
 
-		local ent = Entities.First();
+		local ent = m_entlist.First();
 		local entcnt = 1;
 		local classname = "";
 		while(ent != null)
@@ -518,7 +522,7 @@ class ItemControl extends GameStateListener
 					DoEntFire("!activator", "kill", "", 0, ent, null);
 				}
 			}
-			ent=Entities.Next(ent);
+			ent=m_entlist.Next(ent);
 			entcnt++;
 		}
 	}
@@ -536,6 +540,8 @@ class ItemControl extends GameStateListener
 		weapon_hunting_rifle = 1
 		witch = 1
 	}
+	// pointer to global Entity List
+	m_entlist = null;
 }
 
 g_Timer <- GlobalTimer();
@@ -554,7 +560,7 @@ DirectorOptions.RegisterGSM(g_gsm);
 g_gsc.AddListener(MsgGSL());
 g_gsc.AddListener(SpitterControl(DirectorOptions));
 g_gsc.AddListener(MobControl(DirectorOptions, g_MobResetti));
-g_gsc.AddListener(ItemControl());
+g_gsc.AddListener(ItemControl(Entities));
 Msg("GSC/M/L Script run.\n");
 
 function Update()
