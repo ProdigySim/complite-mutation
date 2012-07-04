@@ -17,6 +17,7 @@
 			"z_mob_spawn_min_interval_normal" 999999
 			"z_mob_spawn_max_interval_normal" 999999
 			"ammo_shotgun_max" 80
+			"ammo_huntingrifle_max" 220
 			"sv_force_time_of_day" 0
 			"z_ghost_delay_min" 20
 			"z_ghost_delay_max" 20
