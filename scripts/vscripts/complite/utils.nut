@@ -8,7 +8,7 @@
 if(this.rawin("__INCLUDE_UTILS_NUT__")) return;
 __INCLUDE_UTILS_NUT__ <- true;
 
-DoIncludeScript("globaltimers.nut", this);
+DoIncludeScript("complite/globaltimers.nut", this);
 
 /* KeyReset
 	Create a KeyReset to track the state of a key before you change its value, and

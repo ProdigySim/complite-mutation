@@ -6,9 +6,9 @@
 
 Msg("Activating Mutation CompLite\n");
 
-DoIncludeScript("gamestate_model.nut", this);
-DoIncludeScript("globaltimers.nut", this);
-DoIncludeScript("utils.nut", this);
+DoIncludeScript("complite/gamestate_model.nut", this);
+DoIncludeScript("complite/globaltimers.nut", this);
+DoIncludeScript("complite/utils.nut", this);
 
 class MsgGSL extends GameStateListener
 {
