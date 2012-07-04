@@ -32,12 +32,37 @@ class GameStateModel
 			m_bLastUpdateSafeAreaOpened = true;
 			m_controller.TriggerSafeAreaOpen();
 		}
+		if(!m_bRoundStarted && m_bHeardAWS && m_bHeardCWS && m_bHeardGDI && m_iRoundStartTime < Time()-1)
+		{
+			m_bRoundStarted = true;
+			m_controller.TriggerRoundStart();
+		}
 	}
 
-	function NewRoundCheck()
+	function OnAllowWeaponSpawn()
 	{
-
+		m_bHeardAWS = true;
+		m_iRoundStartTime = Time();
 	}
+	function OnConvertWeaponSpawn()
+	{
+		m_bHeardCWS = true;
+		m_iRoundStartTime = Time();
+	}
+	function OnGetDefaultItem()
+	{
+		m_bHeardGDI = true;
+		m_iRoundStartTime = Time();
+	}
+
+
+	// Check for various round-start events before triggering OnRoundStart()
+	m_bRoundStarted = false;
+	m_bHeardAWS = false;
+	m_bHeardCWS = false;
+	m_bHeardGDI = false;
+	m_iRoundStartTime = 0;
+
 	m_bLastUpdateTankInPlay = false;
 	m_bLastUpdateSafeAreaOpened = false;
 	m_bNewRoundStart = false;
@@ -180,7 +205,7 @@ class MapInfo {
 	{
 		isIntro = EntList.FindByName(null, "fade_intro") != null
 			|| EntList.FindByName(null, "lcs_intro") != null;
-		//Msg("Indentified map as intro? "+isIntro+".\n");
+		Msg("Indentified map as intro? "+isIntro+".\n");
 	}
 	isIntro = false
 	isFinale = false
@@ -215,23 +240,22 @@ DirectorOptions <-
 	new_round_start = false
 	round_start_time = 0
 
-	mapinfo = MapInfo()
+	model = null
 	controller = null
+	mapinfo = null
 
 	// Register a GameStateController to be used
 	function RegisterGSC(cntrl)
 	{
 		controller = cntrl;
 	}
-
-	function NewRoundCheck()
+	function RegisterGSM(mdl)
 	{
-		if(!new_round_start)
-		{
-			new_round_start = true
-			round_start_time = Time()
-			mapinfo.IdentifyMap(Entities)
-		}
+		model = mdl;
+	}
+	function RegisterMapInfo(minfo)
+	{
+		mapinfo = minfo;
 	}
 
 	weaponsToConvert =
@@ -251,7 +275,7 @@ DirectorOptions <-
 
 	function ConvertWeaponSpawn( classname )
 	{
-		NewRoundCheck()
+		model.OnConvertWeaponSpawn();
 		if ( classname in weaponsToConvert )
 		{
 			//Msg("Converting"+classname+" to "+weaponsToConvert[classname]+"\n")
@@ -282,7 +306,7 @@ DirectorOptions <-
 
 	function AllowWeaponSpawn( classname )
 	{
-		NewRoundCheck()
+		model.OnAllowWeaponSpawn();
 
 		if ( classname in weaponsToRemove )
 		{
@@ -319,7 +343,7 @@ DirectorOptions <-
 
 	function GetDefaultItem( idx )
 	{
-		NewRoundCheck()
+		model.OnGetDefaultItem();
 
 		if ( idx < DefaultItems.len() )
 		{
@@ -459,79 +483,83 @@ class MobControl extends GameStateListener
 	m_resetti = null;
 }
 
+
+class ItemControl extends GameStateListener
+{
+	function OnRoundStart()
+	{
+		Msg("Complite OnRoundStart()\n");
+		// This will run multiple times per round in certain cases...
+		// Notably, on natural map switch (transition) e.g. chapter 1 ends, start chapter 2.
+		// Just make sure you don't screw up anything...
+
+		local ent = Entities.First();
+		local entcnt = 1;
+		local classname = "";
+		while(ent != null)
+		{
+			classname = ent.GetClassname()
+			//Msg(entcnt+". "+classname+"\n");
+			if(classname == "func_playerinfected_clip")
+			{
+				//Msg("Killing...\n");
+				DoEntFire("!activator", "kill", "", 0, ent, null);
+			} else if (classname in weaponsToRemove)
+			{
+				ent.__KeyValueFromInt("count", 1);
+				if(weaponsToRemove[classname] > 0)
+				{
+					//Msg("Found a "+classname+" to keep, "+(weaponsToRemove[classname]-1)+" remain.\n");
+					weaponsToRemove[classname]--
+				}
+				else if(weaponsToRemove[classname] == 0)
+				{
+					//Msg("Removed "+classname+"\n")
+					DoEntFire("!activator", "kill", "", 0, ent, null);
+				}
+			}
+			ent=Entities.Next(ent);
+			entcnt++;
+		}
+	}
+	// We do a roundstart remove of these items to keep the removals from being too greedy. Health items are odd.
+	// Melee weapons work better here, too. Plus we get the chance to set their count!
+	// 0+: Limit to value
+	// <0: Set Count only
+	weaponsToRemove = {
+		weapon_adrenaline_spawn = 3
+		weapon_pain_pills_spawn = 6
+		weapon_melee_spawn = 4
+		weapon_molotov_spawn = -1
+		weapon_vomitjar_spawn = -1
+		weapon_pipebomb_spawn = -1
+		weapon_hunting_rifle = 1
+		witch = 1
+	}
+}
+
 g_Timer <- GlobalTimer();
 g_FrameTimer <- GlobalFrameTimer();
+
+g_MapInfo <- MapInfo();
+g_MapInfo.IdentifyMap(Entities);
+DirectorOptions.RegisterMapInfo(g_MapInfo);
 
 g_MobResetti <- ZeroMobReset(Director, DirectorOptions, g_FrameTimer);
 
 g_gsc <- GameStateController();
 g_gsm <- GameStateModel(g_gsc);
 DirectorOptions.RegisterGSC(g_gsc);
+DirectorOptions.RegisterGSM(g_gsm);
 g_gsc.AddListener(MsgGSL());
 g_gsc.AddListener(SpitterControl(DirectorOptions));
 g_gsc.AddListener(MobControl(DirectorOptions, g_MobResetti));
+g_gsc.AddListener(ItemControl());
 Msg("GSC/M/L Script run.\n");
-
-
-function OnRoundStart()
-{
-		Msg("Complite OnRoundStart()\n");
-		// This will run multiple times per round in certain cases...
-		// Notably, on natural map switch (transition) e.g. chapter 1 ends, start chapter 2.
-		// Just make sure you don't screw up anything...
-
-		// We do a roundstart remove of these items to keep the removals from being too greedy. Health items are odd.
-		// Melee weapons work better here, too. Plus we get the chance to set their count!
-		// 0+: Limit to value
-		// <0: Set Count only
-		weaponsToRemove <- {
-			weapon_adrenaline_spawn = 3
-			weapon_pain_pills_spawn = 6
-			weapon_melee_spawn = 4
-			weapon_molotov_spawn = -1
-			weapon_vomitjar_spawn = -1
-			weapon_pipebomb_spawn = -1
-			weapon_hunting_rifle = 1
-			witch = 1
-		}
-		ent <- Entities.First();
-		entcnt<-1;
-		classname <- ""
-		while(ent != null)
-		{
-				classname = ent.GetClassname()
-				//Msg(entcnt+". "+classname+"\n");
-				if(classname == "func_playerinfected_clip")
-				{
-					//Msg("Killing...\n");
-					DoEntFire("!activator", "kill", "", 0, ent, null);
-				} else if (classname in weaponsToRemove)
-				{
-					ent.__KeyValueFromInt("count", 1);
-					if(weaponsToRemove[classname] > 0)
-					{
-						//Msg("Found a "+classname+" to keep, "+(weaponsToRemove[classname]-1)+" remain.\n");
-						weaponsToRemove[classname]--
-					}
-					else if(weaponsToRemove[classname] == 0)
-					{
-						//Msg("Removed "+classname+"\n")
-						DoEntFire("!activator", "kill", "", 0, ent, null);
-					}
-				}
-				ent=Entities.Next(ent);
-				entcnt++;
-		}
-}
 
 function Update()
 {
 	g_Timer.Update();
 	g_FrameTimer.Update();
-	if(DirectorOptions.new_round_start && DirectorOptions.round_start_time < Time()-1)
-	{
-		DirectorOptions.new_round_start = false
-		OnRoundStart()
-	}
 	g_gsm.DoFrameUpdate();
 }
