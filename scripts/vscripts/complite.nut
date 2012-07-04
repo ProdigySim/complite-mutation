@@ -8,6 +8,7 @@ Msg("Activating Mutation CompLite\n");
 
 DoIncludeScript("gamestate_model.nut", this);
 DoIncludeScript("globaltimers.nut", this);
+DoIncludeScript("utils.nut", this);
 
 class MsgGSL extends GameStateListener
 {
@@ -49,11 +50,6 @@ DirectorOptions <-
 
 	cm_ProhibitBosses = 0
 	cm_AllowPillConversion = 0
-
-	MobSpawnMinTime = 100
-	MobSpawnMaxTime = 100
-	MobSpawnSize = 25
-	SpitterLimit = 1
 
 //  cached_tank_state = 0
 	new_round_start = false
@@ -183,29 +179,27 @@ DirectorOptions <-
 
 }
 
-if(Director.IsPlayingOnConsole()) DirectorOptions.MobSpawnSize = 18;
-
 class SpitterControl extends GameStateListener
 {
-	constructor(director_opts)
+	constructor(director, director_opts)
 	{
-		m_dopts = director_opts
+		m_pDirector = director;
+		m_pSpitterLimit = ::KeyReset(director_opts, "SpitterLimit");
 	}
 	function OnTankEntersPlay()
 	{
-		m_spitlimit = m_dopts.SpitterLimit;
-		m_dopts.SpitterLimit = 0;
+		m_pSpitterLimit.set(0);
 	}
 	function OnTankLeavesPlay()
 	{
-		m_dopts.SpitterLimit = m_spitlimit;
+		m_pSpitterLimit.unset();
 	}
 	function OnSpawnPCZ(id)
 	{
 		local newClass = id;
 
 		// If a spitter is going to be spawned during tank,
-		if(id == SIClass.Spitter && Director.IsTankInPlay())
+		if(id == SIClass.Spitter && m_pDirector.IsTankInPlay())
 		{
 			// Calculate the least recently used SI class
 			local min_idx = SIClass.Smoker;
@@ -230,55 +224,26 @@ class SpitterControl extends GameStateListener
 		return newClass;
 	}
 	// List of last spawned time for each SI class
-	SpawnLastUsed = array(10,0)
+	SpawnLastUsed = array(10,0);
 	// reference to director options
-	m_dopts = null
-	// Last spitter limit
-	m_spitlimit = 0;
+	m_pSpitterLimit = null;
+	m_pDirector = null;
 }
 
-
-class ZeroMobReset extends TimerCallback
-{
-	constructor(director, dopts, timer)
-	{
-		m_director = director;
-		m_dopts = dopts;
-		m_timer = timer;
-	}
-	function ZeroMobReset()
-	{
-		if(m_bResetInProgress) return;
-		Msg("ZeroMobReset()\n");
-		m_oldSize = m_dopts.MobSpawnSize;
-		m_dopts.MobSpawnSize = 0
-		m_director.ResetMobTimer();
-		m_timer.AddTimer(1, this)
-		m_bResetInProgress = true;
-	}
-	function OnTimerElapsed()
-	{
-		m_dopts.MobSpawnSize = m_oldSize;
-		m_bResetInProgress = false;
-	}
-	m_bResetInProgress = false;
-	m_oldSize = 0;
-	m_director = null;
-	m_dopts = null;
-	m_timer = null;
-}
 
 class MobControl extends GameStateListener
 {
-	constructor(director_opts, mobresetti)
+	constructor(mobresetti)
 	{
-		m_dopts = director_opts;
+		//m_dopts = director_opts;
 		m_resetti = mobresetti;
 	}
 	function OnSafeAreaOpened() 
 	{
 		m_resetti.ZeroMobReset();
 	}
+	// These functions created major problems....
+	/*
 	function OnTankEntersPlay()
 	{
 		m_oldMinTime = m_dopts.MobSpawnMinTime;
@@ -295,10 +260,10 @@ class MobControl extends GameStateListener
 		m_dopts.MobSpawnMaxTime = m_oldMaxTime;
 
 		m_resetti.ZeroMobReset();
-	}
+	} 
 	m_oldMinTime = 0;
-	m_oldMaxTime = 0;
-	m_dopts = null;
+	m_oldMaxTime = 0; 
+	m_dopts = null; */
 	m_resetti = null;
 }
 
@@ -360,7 +325,7 @@ class ItemControl extends GameStateListener
 	m_entlist = null;
 }
 
-g_Timer <- GlobalTimer();
+g_Timer <- GlobalSecondsTimer();
 g_FrameTimer <- GlobalFrameTimer();
 
 g_MapInfo <- MapInfo();
@@ -374,8 +339,8 @@ g_gsm <- GameStateModel(g_gsc);
 DirectorOptions.RegisterGSC(g_gsc);
 DirectorOptions.RegisterGSM(g_gsm);
 g_gsc.AddListener(MsgGSL());
-g_gsc.AddListener(SpitterControl(DirectorOptions));
-g_gsc.AddListener(MobControl(DirectorOptions, g_MobResetti));
+g_gsc.AddListener(SpitterControl(Director, DirectorOptions));
+g_gsc.AddListener(MobControl(g_MobResetti));
 g_gsc.AddListener(ItemControl(Entities));
 Msg("GSC/M/L Script run.\n");
 

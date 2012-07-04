@@ -47,8 +47,9 @@ class TimerCallback
 
 class ::GlobalTimer
 {
-	// Returns the current time in seconds (internal use)
-	function GetCurrentTime() { return Time(); }
+	// Returns the current time in some format that supports arithmetic operations
+	// Overload this in your final class
+	function GetCurrentTime() { assert(null) }
 	/* Update()
 	Checks to see which timers have elapsed.
 	Please run on global frame Update() function
@@ -88,6 +89,12 @@ class ::GlobalTimer
 
 	m_callbacks = [];
 	m_cbtimes = [];
+}
+
+class GlobalSecondsTimer extends GlobalTimer
+{
+	// Returns the current time in seconds (internal use)
+	function GetCurrentTime() { return Time(); }
 }
 
 class GlobalFrameTimer extends GlobalTimer
