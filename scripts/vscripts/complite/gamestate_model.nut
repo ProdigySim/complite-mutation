@@ -8,58 +8,74 @@
 if(this.rawin("__INCLUDE_GAMESTATE_MODEL_NUT__")) return;
 __INCLUDE_GAMESTATE_MODEL_NUT__ <- true;
 
+
+const ROUNDSTART_DELAY_INTERVAL 2;
+
 class GameStateModel
 {
-	constructor(controller)
+	constructor(controller, director, director_options)
 	{
 		m_controller = controller;
+		m_pDirector = director;
+		director_options.AllowWeaponSpawn <- OnAllowWeaponSpawn;
+		director_options.ConvertWeaponSpawn <- OnConvertWeaponSpawn;
+		director_options.GetDefaultItem <- OnGetDefaultItem;
+		director_options.ConvertZombieClass <- OnConvertZombieClass;
 	}
 
 	function DoFrameUpdate()
 	{
 		if(m_bLastUpdateTankInPlay)
 		{
-			if(!Director.IsTankInPlay())
+			if(!m_pDirector.IsTankInPlay())
 			{
 				m_bLastUpdateTankInPlay = false;
 				m_controller.TriggerTankLeavesPlay();
 			}
 		}
-		else if(Director.IsTankInPlay())
+		else if(m_pDirector.IsTankInPlay())
 		{
 			m_bLastUpdateTankInPlay = true;
 			m_controller.TriggerTankEntersPlay();
 		}
-		if(!m_bLastUpdateSafeAreaOpened && Director.HasAnySurvivorLeftSafeArea())
+		if(!m_bLastUpdateSafeAreaOpened && m_pDirector.HasAnySurvivorLeftSafeArea())
 		{
 			m_bLastUpdateSafeAreaOpened = true;
 			m_controller.TriggerSafeAreaOpen();
 		}
-		if(!m_bRoundStarted && m_bHeardAWS && m_bHeardCWS && m_bHeardGDI && m_iRoundStartTime < Time()-1)
+		if(!m_bRoundStarted && m_bHeardAWS && m_bHeardCWS && m_bHeardGDI 
+			&& m_iRoundStartTime < Time()-ROUNDSTART_DELAY_INTERVAL)
 		{
 			m_bRoundStarted = true;
 			m_controller.TriggerRoundStart();
 		}
 	}
 
-	function OnAllowWeaponSpawn()
+	function OnAllowWeaponSpawn( classname )
 	{
 		m_bHeardAWS = true;
 		m_iRoundStartTime = Time();
+		return m_controller.TriggerAllowWeaponSpawn(classname);
 	}
-	function OnConvertWeaponSpawn()
+	function OnConvertWeaponSpawn( classname )
 	{
 		m_bHeardCWS = true;
 		m_iRoundStartTime = Time();
+		return m_controller.TriggerConvertWeaponSpawn(classname);
 	}
-	function OnGetDefaultItem()
+	function OnGetDefaultItem( idx )
 	{
 		m_bHeardGDI = true;
 		m_iRoundStartTime = Time();
+		return m_controller.TriggerGetDefaultItem(idx);
+	}
+	function OnConvertZombieClass(id)
+	{
+		return m_controller.TriggerPCZSpawn(id);
 	}
 
 
-	// Check for various round-start events before triggering OnRoundStart()
+	// Check for various round-start even. ts before triggering OnRoundStart()
 	m_bRoundStarted = false;
 	m_bHeardAWS = false;
 	m_bHeardCWS = false;
@@ -71,11 +87,12 @@ class GameStateModel
 	m_bNewRoundStart = false;
 	m_iRoundStartTime = 0;
 	m_controller = null;
+	m_pDirector = null;
 }
 
 class GameStateListener
 {
-	// Called on round start. There may be multiples of these triggered, unfortunately
+	// Called on round start. These may be multiples of these triggered, unfortunately.
 	function OnRoundStart() {}
 	// Called when a player leaves saferoom or the saferoom timer counts down
 	function OnSafeAreaOpened() {}
@@ -84,13 +101,30 @@ class GameStateListener
 	// Called when tank dies/leaves play
 	function OnTankLeavesPlay() {}
 	// Called when a player-controlled zombie is going to be spawned via ConvertZombieClass
+	// This event will be chained--called on all Listeners with the modified id passed into successive calls.
 	// id: SIClass id of the PCZ to be spawned
 	// return another SIClass value to convert the PCZ spawn.
-	function OnSpawnPCZ(id) { return id; }
+	function OnSpawnPCZ(id) {}
 	// Called when a player-controlled zombie is going to be spawned via ConvertZombieClass
 	// After conversions from OnSpawnPCZ have taken place
 	// id: actual SIClass id to be spawned
 	function OnSpawnedPCZ(id) {}
+	// Called when DirectorOptions.GetDefaultItem() is called.
+	// This event chain will notify all listeners, but only one return value will be used.
+	// TODO: further abstraction to just have lists returned...
+	// Should be at the beginning of the round normally.
+	function OnGetDefaultItem(idx) {}
+	// Called when DirectorOptions.AllowWeaponSpawn() is called. 
+	// Should be at the beginning of the round normally, after conversions take place.
+	// This event will stop being called on Listeners when one listener returns false.
+	// classname: string classname of weapon to allow/disallow
+	// return true to allow, false to disallow.
+	function OnAllowWeaponSpawn(classname) {}
+	// Called when DirectorOptions.ConvertWeaponSpawn is called
+	// This event will be chained--called on all Listeners with the modified classname passed into successive calls.
+	// classname: Classname of the weapon that would spawned
+	// retun the classname that it should be converted to, or 0 for no conversion.
+	function OnConvertWeaponSpawn(classname) {}
 }
 
 class GameStateController
@@ -136,5 +170,40 @@ class GameStateController
 			listener.OnSpawnedPCZ(retval)
 		return retval;
 	}
+	TriggerAllowWeaponSpawn(classname)
+	{
+		foreach(listener in m_listeners)
+		{
+			// Cancel call chain once one listener returns false (says not to spawn it).
+			if(listener.OnAllowWeaponSpawn(classname) == false) return false;
+			// Interesting ! semantics
+			//             null  false
+			// !ret        true  true
+			// ret==false  false true
+			// ret==null   true  false
+		}
+		return true;
+	}
+	TriggerConvertWeaponSpawn(classname)
+	{
+		local retcls = classname;
+		foreach(listener in m_listeners)
+		{
+			local ret = listener.OnConvertWeaponSpawn(classname);
+			if(ret != null && ret != 0) retcls = ret;
+		}
+		return retcls;
+	}
+	TriggerGetDefaultItem(idx)
+	{
+		local retval = 0;
+		foreach(listener in m_listeners)
+		{
+			local ret = listener.OnGetDefaultItem(idx);
+			if(retval == 0 && ret != null) retval = ret;
+		}
+		return ret;
+	}
+
 	m_listeners = []
 }

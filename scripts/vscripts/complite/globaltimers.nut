@@ -74,6 +74,7 @@ class ::GlobalTimer
 		local cbtime = GetCurrentTime() + time;
 		// Insert sorted Ascending by end timestamp (cbtime) into callbacks list
 		local i = 0;
+		// TODO: Binary search
 		while(i < m_callbacks.len() && cbtimes[i] < cbtime) i++;
 		if(i == m_callbacks.len())
 		{

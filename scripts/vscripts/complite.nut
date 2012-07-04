@@ -18,6 +18,20 @@ class MsgGSL extends GameStateListener
 	function OnTankLeavesPlay() { Msg("MsgGSL: OnTankLeavesPlay()\n"); }
 	function OnSpawnPCZ(id) { Msg("MsgGSL: OnSpawnPCZ("+id+")\n"); }
 	function OnSpawnedPCZ(id) { Msg("MsgGSL: OnSpawnedPCZ("+id+")\n"); }
+	function OnGetDefaultItem(idx)
+	{ 
+		if(idx == 0) 
+		{
+			Msg("MsgGSL: OnGetDefaultItem(0) #"+m_defaultItemCnt+"\n");
+			m_defaultItemCnt++;
+		}
+	}
+	// Too much spam for these
+	/*
+	function OnAllowWeaponSpawn(classname) {}
+	function OnConvertWeaponSpawn(classname) {}
+	*/
+	m_defaultItemCnt = 0;
 }
 
 class MapInfo {
@@ -44,139 +58,17 @@ enum SIClass {
 	Tank = 8
 }
 
+function KillEntity(ent)
+{
+	DoEntFire("!activator", "kill", "", 0, ent, null);
+}
+
 DirectorOptions <-
 {
 	ActiveChallenge = 1
 
 	cm_ProhibitBosses = 0
 	cm_AllowPillConversion = 0
-
-//  cached_tank_state = 0
-	new_round_start = false
-	round_start_time = 0
-
-	model = null
-	controller = null
-	mapinfo = null
-
-	// Register a GameStateController to be used
-	function RegisterGSC(cntrl)
-	{
-		controller = cntrl;
-	}
-	function RegisterGSM(mdl)
-	{
-		model = mdl;
-	}
-	function RegisterMapInfo(minfo)
-	{
-		mapinfo = minfo;
-	}
-
-	weaponsToConvert =
-	{
-		weapon_autoshotgun	  = "weapon_pumpshotgun_spawn"
-		weapon_shotgun_spas	 = "weapon_shotgun_chrome_spawn"
-		weapon_rifle			= "weapon_smg_spawn"
-		weapon_rifle_desert	 = "weapon_smg_spawn"
-		weapon_rifle_sg552	  = "weapon_smg_mp5_spawn"
-		weapon_rifle_ak47	   = "weapon_smg_silenced_spawn"
-		weapon_hunting_rifle	= "weapon_smg_silenced_spawn"
-		weapon_sniper_military  = "weapon_shotgun_chrome_spawn"
-		weapon_sniper_awp	   = "weapon_shotgun_chrome_spawn"
-		weapon_sniper_scout	 = "weapon_pumpshotgun_spawn"
-		weapon_first_aid_kit	= "weapon_pain_pills_spawn"
-	}
-
-	function ConvertWeaponSpawn( classname )
-	{
-		model.OnConvertWeaponSpawn();
-		if ( classname in weaponsToConvert )
-		{
-			//Msg("Converting"+classname+" to "+weaponsToConvert[classname]+"\n")
-			return weaponsToConvert[classname];
-		}
-		return 0;
-	}
-
-	// 0: Always remove
-	// >0: Keep the first n instances, delete others
-	// <-1: Delete the first n instances, keep others.
-	weaponsToRemove =
-	{
-		weapon_defibrillator = 0
-		weapon_grenade_launcher = 0
-		weapon_upgradepack_incendiary = 0
-		weapon_upgradepack_explosive = 0
-		weapon_chainsaw = 0
-		weapon_molotov = 1
-		weapon_pipe_bomb = 2
-		weapon_vomitjar = 1
-		weapon_propanetank = 0
-		weapon_oxygentank = 0
-		weapon_rifle_m60 = 0
-		weapon_first_aid_kit = -5
-		upgrade_item = 0
-	}
-
-	function AllowWeaponSpawn( classname )
-	{
-		model.OnAllowWeaponSpawn();
-
-		if ( classname in weaponsToRemove )
-		{
-			if(classname == "weapon_hunting_rifle")
-			{
-				Msg("Found a HR! Voting no!\n");
-			}
-			if(weaponsToRemove[classname] > 0)
-			{
-				//Msg("Found a "+classname+" to keep, "+weaponsToRemove[classname]+" remain.\n");
-				weaponsToRemove[classname]--
-			}
-			else if (weaponsToRemove[classname] < -1)
-			{
-				//Msg("Killing just one "+classname+"\n");
-				weaponsToRemove[classname]++
-				return false;
-			}
-			else if (weaponsToRemove[classname] == 0)
-			{
-				//Msg("Removed "+classname+"\n")
-				return false;
-			}
-		}
-
-		return true;
-	}		
-
-	DefaultItems =
-	[
-		"weapon_pain_pills",
-		"weapon_pistol",
-	]
-
-	function GetDefaultItem( idx )
-	{
-		model.OnGetDefaultItem();
-
-		if ( idx < DefaultItems.len() )
-		{
-			return DefaultItems[idx];
-		} else if(!mapinfo.isIntro && idx == DefaultItems.len())
-		{
-			return "weapon_hunting_rifle"; // give out the hunny rifle
-		}
-		return 0;
-	}
-
-	function ConvertZombieClass(id)
-	{
-		if(controller != null)
-			return controller.TriggerPCZSpawn(id);
-		return id;
-	}
-
 }
 
 class SpitterControl extends GameStateListener
@@ -267,62 +159,184 @@ class MobControl extends GameStateListener
 	m_resetti = null;
 }
 
+class BasicItemSystems extends GameStateListener
+{
+	constructor(removalTable, convertTable, defaultItemList)
+	{
+		m_removalTable = removalTable;
+		m_convertTable = convertTable;
+		m_defaultItemList = defaultItemList
+	}
+	function OnAllowWeaponSpawn(classname)
+	{
+		if ( classname in removalTable )
+		{
+			if(m_removalTable[classname] > 0)
+			{
+				//Msg("Found a "+classname+" to keep, "+m_removalTable[classname]+" remain.\n");
+				m_removalTable[classname]--
+			}
+			else if (m_removalTable[classname] < -1)
+			{
+				//Msg("Killing just one "+classname+"\n");
+				m_removalTable[classname]++
+				return false;
+			}
+			else if (m_removalTable[classname] == 0)
+			{
+				//Msg("Removed "+classname+"\n")
+				return false;
+			}
+		}
+		return true;
+	}
+	function OnConvertWeaponSpawn(classname)
+	{
+		if ( classname in m_convertTable )
+		{
+			//Msg("Converting"+classname+" to "+convertTable[classname]+"\n")
+			return m_convertTable[classname];
+		}
+		return 0;
+	}
+	function OnGetDefaultItem(idx)
+	{
+		if ( idx < m_defaultItemList.len())
+		{
+			return m_defaultItemList[idx];
+		}
+		return 0;
+	}
+	m_removalTable = null;
+	m_convertTable = null;
+	m_defaultItemList = null;
+}
 
 class ItemControl extends GameStateListener
 {
-	constructor(entlist)
+	constructor(entlist, removalTable, setCountTable)
 	{
 		m_entlist = entlist;
+		m_removalTable = removalTable;
+		m_setCountTable = setCountTable;
 	}
 	function OnRoundStart()
 	{
-		Msg("Complite OnRoundStart()\n");
+		Msg("ItemControl OnRoundStart()\n");
 		// This will run multiple times per round in certain cases...
 		// Notably, on natural map switch (transition) e.g. chapter 1 ends, start chapter 2.
 		// Just make sure you don't screw up anything...
 
 		local ent = m_entlist.First();
 		local classname = "";
+		local tItemEnts = {};
+
+		// Create an empty array for each item in our list.
+		foreach(key,val in m_removalTable)
+		{
+			tItemEnts.[key] = [];
+		}
+
 		while(ent != null)
 		{
 			classname = ent.GetClassname()
-			if(classname == "func_playerinfected_clip")
-			{
-				//Msg("Killing...\n");
-				DoEntFire("!activator", "kill", "", 0, ent, null);
-			} else if (classname in weaponsToRemove)
+			if(classname in m_setCountTable)
 			{
 				ent.__KeyValueFromInt("count", 1);
-				if(weaponsToRemove[classname] > 0)
-				{
-					//Msg("Found a "+classname+" to keep, "+(weaponsToRemove[classname]-1)+" remain.\n");
-					weaponsToRemove[classname]--
-				}
-				else if(weaponsToRemove[classname] == 0)
-				{
-					//Msg("Removed "+classname+"\n")
-					DoEntFire("!activator", "kill", "", 0, ent, null);
-				}
+			}
+			if(classname in m_removalTable)
+			{
+				tItemEnts[classname].push(ent);
 			}
 			ent=m_entlist.Next(ent);
 		}
+
+		foreach(classname,instances in tItemEnts)
+		{
+			local cnt = m_removalTable[classname].tointeger();
+
+			// Less instances of this entity class than we want to remove to.
+			if(instances.len() <= cnt) continue;
+
+			// We need to choose certain items to save
+			if(cnt > 0)
+			{
+				local curIdx = 0;
+				local saved = 0;
+				local saveratio = (instances.len() / cnt) - 1;
+				
+				// Reverse list (inplace) so we bias towards keeping later items
+				instances.reverse();
+				// Until we have saved enough items
+				while( saved < cnt )
+				{
+					// Remove this entity from the kill list
+					instances.remove(curIdx);
+					// Leave the next saveratio items in the kill list
+					curIdx += saveratio;
+					// Count that we have saved another entity
+					saved++;
+				}
+			}
+			foreach(inst in instances)
+			{
+				KillEntity(inst);
+			}
+
+		}
 	}
+	// pointer to global Entity List
+	m_entlist = null;
+	// Table of entity classname, limit value pairs
 	// We do a roundstart remove of these items to keep the removals from being too greedy. Health items are odd.
 	// Melee weapons work better here, too. Plus we get the chance to set their count!
 	// 0+: Limit to value
 	// <0: Set Count only
-	weaponsToRemove = {
-		weapon_adrenaline_spawn = 3
-		weapon_pain_pills_spawn = 6
-		weapon_melee_spawn = 4
-		weapon_molotov_spawn = -1
-		weapon_vomitjar_spawn = -1
-		weapon_pipebomb_spawn = -1
-		weapon_hunting_rifle = 1
-		witch = 1
+	m_removalTable = null;
+	m_setCountTable = null;
+}
+
+class HRControl extends GameStateListener //, extends TimerCallback (no MI support)
+{
+	constructor(entlist, gtimer)
+	{
+		m_pEntities = entlist;
+		m_pTimer = gtimer;
 	}
-	// pointer to global Entity List
-	m_entlist = null;
+	function OnGetDefaultItem(idx)
+	{
+		if(!m_bTimerInProgress)
+		{
+			// Process HRs next frame after they're handed out.
+			m_pTimer.AddTimer(1,this);	
+			m_bTimerInProgress = true;
+		}
+		
+	}
+	// Not actually inherited but it doesn't need to be.
+	function OnTimerElapsed()
+	{
+		m_bTimerInProgress = false;
+		
+		local ent = null;
+		local hrList = [];
+		while((ent = m_pEntities.FindByClassname(ent, "weapon_hunting_rifle")) != null)
+		{
+			hrList.push(ent);
+		}
+		
+		// Save 1 HR at random
+		hrList.remove(RandomInt(0,hrList.len()-1));
+
+		// Delete the rest
+		foreach(hr in hrList)
+		{
+			DoEntFire("!activator", "kill", "", 0, hr, null);
+		}
+	}
+	m_pEntities = null;
+	m_pTimer = null;
+	m_bTimerInProgress = false;
 }
 
 g_Timer <- GlobalSecondsTimer();
@@ -335,13 +349,91 @@ DirectorOptions.RegisterMapInfo(g_MapInfo);
 g_MobResetti <- ZeroMobReset(Director, DirectorOptions, g_FrameTimer);
 
 g_gsc <- GameStateController();
-g_gsm <- GameStateModel(g_gsc);
+g_gsm <- GameStateModel(g_gsc, Director, DirectorOptions);
 DirectorOptions.RegisterGSC(g_gsc);
 DirectorOptions.RegisterGSM(g_gsm);
 g_gsc.AddListener(MsgGSL());
 g_gsc.AddListener(SpitterControl(Director, DirectorOptions));
 g_gsc.AddListener(MobControl(g_MobResetti));
-g_gsc.AddListener(ItemControl(Entities));
+
+myDefaultItems =
+[
+	"weapon_pain_pills",
+	"weapon_pistol",
+];
+// Give out hunting rifles on non-intro maps.
+// But limit them to 1 of each.
+if(!g_MapInfo.isIntro)
+{
+	myDefaultItems.push("weapon_hunting_rifle");
+	g_gsc.AddListener(HRControl(Entities, g_FrameTimer));
+}
+
+
+g_gsc.AddListener(
+	BasicItemSystems(
+		// AllowWeaponSpawn Limits
+		// 0: Always remove
+		// >0: Keep the first n instances, delete others
+		// <-1: Delete the first n instances, keep others.
+		{
+			weapon_defibrillator = 0
+			weapon_grenade_launcher = 0
+			weapon_upgradepack_incendiary = 0
+			weapon_upgradepack_explosive = 0
+			weapon_chainsaw = 0
+			weapon_molotov = 1
+			weapon_pipe_bomb = 2
+			weapon_vomitjar = 1
+			weapon_propanetank = 0
+			weapon_oxygentank = 0
+			weapon_rifle_m60 = 0
+			weapon_first_aid_kit = -5
+			upgrade_item = 0
+		},
+		// Conversion Rules
+		{
+		weapon_autoshotgun	  = "weapon_pumpshotgun_spawn"
+		weapon_shotgun_spas	 = "weapon_shotgun_chrome_spawn"
+		weapon_rifle			= "weapon_smg_spawn"
+		weapon_rifle_desert	 = "weapon_smg_spawn"
+		weapon_rifle_sg552	  = "weapon_smg_mp5_spawn"
+		weapon_rifle_ak47	   = "weapon_smg_silenced_spawn"
+		weapon_hunting_rifle	= "weapon_smg_silenced_spawn"
+		weapon_sniper_military  = "weapon_shotgun_chrome_spawn"
+		weapon_sniper_awp	   = "weapon_shotgun_chrome_spawn"
+		weapon_sniper_scout	 = "weapon_pumpshotgun_spawn"
+		weapon_first_aid_kit	= "weapon_pain_pills_spawn"
+		},
+		// Default item list
+		myDefaultItems
+	);
+);
+
+g_gsc.AddListener(
+	ItemControl(Entities, 
+	// Roundstart Weapon removal list
+	// 0+: Limit to value
+	// <0: Set Count only
+	{
+		weapon_adrenaline_spawn = 1
+		weapon_pain_pills_spawn = 3
+		weapon_melee_spawn = 4
+		witch = 1
+		func_playerinfected_clip = 0
+	},
+	[
+		weapon_adrenaline_spawn,
+		weapon_pain_pills_spawn,
+		weapon_melee_spawn,
+		weapon_molotov_spawn,
+		weapon_vomitjar_spawn,
+		weapon_pipebomb_spawn
+	]);
+);
+
+
+
 Msg("GSC/M/L Script run.\n");
 
 function Update()
