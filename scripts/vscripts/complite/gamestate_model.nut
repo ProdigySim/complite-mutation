@@ -9,18 +9,14 @@ if(this.rawin("__INCLUDE_GAMESTATE_MODEL_NUT__")) return;
 __INCLUDE_GAMESTATE_MODEL_NUT__ <- true;
 
 
-const ROUNDSTART_DELAY_INTERVAL 2;
+const ROUNDSTART_DELAY_INTERVAL = 2;
 
 class GameStateModel
 {
-	constructor(controller, director, director_options)
+	constructor(controller, director)
 	{
 		m_controller = controller;
 		m_pDirector = director;
-		director_options.AllowWeaponSpawn <- OnAllowWeaponSpawn;
-		director_options.ConvertWeaponSpawn <- OnConvertWeaponSpawn;
-		director_options.GetDefaultItem <- OnGetDefaultItem;
-		director_options.ConvertZombieClass <- OnConvertZombieClass;
 	}
 
 	function DoFrameUpdate()
@@ -50,7 +46,6 @@ class GameStateModel
 			m_controller.TriggerRoundStart();
 		}
 	}
-
 	function OnAllowWeaponSpawn( classname )
 	{
 		m_bHeardAWS = true;
@@ -170,7 +165,7 @@ class GameStateController
 			listener.OnSpawnedPCZ(retval)
 		return retval;
 	}
-	TriggerAllowWeaponSpawn(classname)
+	function TriggerAllowWeaponSpawn(classname)
 	{
 		foreach(listener in m_listeners)
 		{
@@ -184,9 +179,9 @@ class GameStateController
 		}
 		return true;
 	}
-	TriggerConvertWeaponSpawn(classname)
+	function TriggerConvertWeaponSpawn(classname)
 	{
-		local retcls = classname;
+		local retcls = 0;
 		foreach(listener in m_listeners)
 		{
 			local ret = listener.OnConvertWeaponSpawn(classname);
@@ -194,7 +189,7 @@ class GameStateController
 		}
 		return retcls;
 	}
-	TriggerGetDefaultItem(idx)
+	function TriggerGetDefaultItem(idx)
 	{
 		local retval = 0;
 		foreach(listener in m_listeners)
@@ -202,7 +197,7 @@ class GameStateController
 			local ret = listener.OnGetDefaultItem(idx);
 			if(retval == 0 && ret != null) retval = ret;
 		}
-		return ret;
+		return retval;
 	}
 
 	m_listeners = []

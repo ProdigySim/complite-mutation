@@ -62,6 +62,7 @@ function KillEntity(ent)
 {
 	DoEntFire("!activator", "kill", "", 0, ent, null);
 }
+::KillEntity <- KillEntity;
 
 DirectorOptions <-
 {
@@ -69,6 +70,26 @@ DirectorOptions <-
 
 	cm_ProhibitBosses = 0
 	cm_AllowPillConversion = 0
+	
+	m_model = null
+	
+	function RegisterModel(mdl) { m_model = mdl; }
+	function AllowWeaponSpawn( classname )
+	{
+		return m_model.OnAllowWeaponSpawn(classname);
+	}
+	function ConvertWeaponSpawn( classname ) 
+	{ 
+		return m_model.OnConvertWeaponSpawn(classname);
+	}
+	function GetDefaultItem( idx ) 
+	{
+		return m_model.OnGetDefaultItem(idx);
+	}
+	function ConvertZombieClass( id ) 
+	{ 
+		return m_model.OnConvertZombieClass(id);
+	}
 }
 
 class SpitterControl extends GameStateListener
@@ -169,7 +190,7 @@ class BasicItemSystems extends GameStateListener
 	}
 	function OnAllowWeaponSpawn(classname)
 	{
-		if ( classname in removalTable )
+		if ( classname in m_removalTable )
 		{
 			if(m_removalTable[classname] > 0)
 			{
@@ -234,7 +255,7 @@ class ItemControl extends GameStateListener
 		// Create an empty array for each item in our list.
 		foreach(key,val in m_removalTable)
 		{
-			tItemEnts.[key] = [];
+			tItemEnts[key] <- [];
 		}
 
 		while(ent != null)
@@ -278,9 +299,10 @@ class ItemControl extends GameStateListener
 					saved++;
 				}
 			}
+			Msg("Killing "+instances.len()+" "+classname+" out of "+(instances.len()+cnt)+" on the map.\n");
 			foreach(inst in instances)
 			{
-				KillEntity(inst);
+				::KillEntity(inst);
 			}
 
 		}
@@ -311,8 +333,8 @@ class HRControl extends GameStateListener //, extends TimerCallback (no MI suppo
 			m_pTimer.AddTimer(1,this);	
 			m_bTimerInProgress = true;
 		}
-		
 	}
+
 	// Not actually inherited but it doesn't need to be.
 	function OnTimerElapsed()
 	{
@@ -324,6 +346,7 @@ class HRControl extends GameStateListener //, extends TimerCallback (no MI suppo
 		{
 			hrList.push(ent);
 		}
+		if(hrList.len() == 0) return;
 		
 		// Save 1 HR at random
 		hrList.remove(RandomInt(0,hrList.len()-1));
@@ -331,7 +354,7 @@ class HRControl extends GameStateListener //, extends TimerCallback (no MI suppo
 		// Delete the rest
 		foreach(hr in hrList)
 		{
-			DoEntFire("!activator", "kill", "", 0, hr, null);
+			::KillEntity(hr);
 		}
 	}
 	m_pEntities = null;
@@ -344,19 +367,17 @@ g_FrameTimer <- GlobalFrameTimer();
 
 g_MapInfo <- MapInfo();
 g_MapInfo.IdentifyMap(Entities);
-DirectorOptions.RegisterMapInfo(g_MapInfo);
 
 g_MobResetti <- ZeroMobReset(Director, DirectorOptions, g_FrameTimer);
 
 g_gsc <- GameStateController();
-g_gsm <- GameStateModel(g_gsc, Director, DirectorOptions);
-DirectorOptions.RegisterGSC(g_gsc);
-DirectorOptions.RegisterGSM(g_gsm);
+g_gsm <- GameStateModel(g_gsc, Director);
+DirectorOptions.RegisterModel(g_gsm);
 g_gsc.AddListener(MsgGSL());
 g_gsc.AddListener(SpitterControl(Director, DirectorOptions));
 g_gsc.AddListener(MobControl(g_MobResetti));
 
-myDefaultItems =
+myDefaultItems <-
 [
 	"weapon_pain_pills",
 	"weapon_pistol",
@@ -382,9 +403,9 @@ g_gsc.AddListener(
 			weapon_upgradepack_incendiary = 0
 			weapon_upgradepack_explosive = 0
 			weapon_chainsaw = 0
-			weapon_molotov = 1
-			weapon_pipe_bomb = 2
-			weapon_vomitjar = 1
+			//weapon_molotov = 1
+			//weapon_pipe_bomb = 2
+			//weapon_vomitjar = 1
 			weapon_propanetank = 0
 			weapon_oxygentank = 0
 			weapon_rifle_m60 = 0
@@ -404,32 +425,39 @@ g_gsc.AddListener(
 		weapon_sniper_awp	   = "weapon_shotgun_chrome_spawn"
 		weapon_sniper_scout	 = "weapon_pumpshotgun_spawn"
 		weapon_first_aid_kit	= "weapon_pain_pills_spawn"
+		weapon_molotov = "weapon_molotov_spawn"
+		weapon_pipe_bomb = "weapon_pipe_bomb_spawn"
+		weapon_vomitjar = "weapon_vomitjar_spawn"
 		},
 		// Default item list
 		myDefaultItems
-	);
+	)
 );
 
 g_gsc.AddListener(
 	ItemControl(Entities, 
 	// Roundstart Weapon removal list
-	// 0+: Limit to value
-	// <0: Set Count only
-	{
-		weapon_adrenaline_spawn = 1
-		weapon_pain_pills_spawn = 3
-		weapon_melee_spawn = 4
-		witch = 1
-		func_playerinfected_clip = 0
-	},
-	[
-		weapon_adrenaline_spawn,
-		weapon_pain_pills_spawn,
-		weapon_melee_spawn,
-		weapon_molotov_spawn,
-		weapon_vomitjar_spawn,
-		weapon_pipebomb_spawn
-	]);
+	// Limit to value
+		{
+			weapon_adrenaline_spawn = 1
+			weapon_pain_pills_spawn = 3
+			weapon_melee_spawn = 4
+			witch = 1
+			func_playerinfected_clip = 0
+			weapon_molotov_spawn = 1
+			weapon_pipe_bomb_spawn = 2
+			weapon_vomitjar_spawn = 1
+		},
+	// Set count to 1 on these
+		[
+			"weapon_adrenaline_spawn",
+			"weapon_pain_pills_spawn",
+			"weapon_melee_spawn",
+			"weapon_molotov_spawn",
+			"weapon_vomitjar_spawn",
+			"weapon_pipebomb_spawn"
+		]
+	)
 );
 
 
