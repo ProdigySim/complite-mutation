@@ -6,6 +6,16 @@
 
 Msg("Activating Mutation CompLite\n");
 
+if(!getroottable().rawin("m_roundCount"))
+{
+	Msg("Complite detected new map round!\n");
+	::m_roundCount <- 0;
+	return;
+}
+
+::m_roundCount++;
+Msg("Complite starting round "+::m_roundCount+"\n");
+
 DoIncludeScript("complite/gamestate_model.nut", this);
 DoIncludeScript("complite/globaltimers.nut", this);
 DoIncludeScript("complite/utils.nut", this);
@@ -327,26 +337,25 @@ class HRControl extends GameStateListener //, extends TimerCallback (no MI suppo
 	}
 	function OnGetDefaultItem(idx)
 	{
-		if(!m_bTimerInProgress)
+		if(!m_bTriggeredOnce)
 		{
 			// Process HRs next frame after they're handed out.
-			m_pTimer.AddTimer(1,this);	
-			m_bTimerInProgress = true;
+			m_pTimer.AddTimer(2,this);	
+			m_bTriggeredOnce = true;
 		}
 	}
 
 	// Not actually inherited but it doesn't need to be.
 	function OnTimerElapsed()
 	{
-		m_bTimerInProgress = false;
-		
 		local ent = null;
 		local hrList = [];
 		while((ent = m_pEntities.FindByClassname(ent, "weapon_hunting_rifle")) != null)
 		{
 			hrList.push(ent);
 		}
-		if(hrList.len() == 0) return;
+		Msg("Found "+hrList.len()+" HRs this check\n");
+		if(hrList.len() <= 1) return;
 		
 		// Save 1 HR at random
 		hrList.remove(RandomInt(0,hrList.len()-1));
@@ -359,7 +368,7 @@ class HRControl extends GameStateListener //, extends TimerCallback (no MI suppo
 	}
 	m_pEntities = null;
 	m_pTimer = null;
-	m_bTimerInProgress = false;
+	m_bTriggeredOnce = false;
 }
 
 g_Timer <- GlobalSecondsTimer();
