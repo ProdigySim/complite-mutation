@@ -146,7 +146,7 @@ g_GSC.AddListener(
 	// Limit to value
 		{
 			weapon_adrenaline_spawn = 1
-			weapon_pain_pills_spawn = 3
+			weapon_pain_pills_spawn = 4
 			weapon_melee_spawn = 4
 			witch = 1
 			func_playerinfected_clip = 0
