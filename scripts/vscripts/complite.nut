@@ -149,7 +149,7 @@ g_GSC.AddListener(
 			witch = 1
 			func_playerinfected_clip = 0
 			weapon_molotov_spawn = 1
-			weapon_pipe_bomb_spawn = 2
+			weapon_pipe_bomb_spawn = 1
 			weapon_vomitjar_spawn = 1
 		},
 	// Set count to 1 on these
