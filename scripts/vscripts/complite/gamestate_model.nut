@@ -5,13 +5,13 @@
 // =============================================================================
 
 // double include protection
-if(this.rawin("__INCLUDE_GAMESTATE_MODEL_NUT__")) return;
-__INCLUDE_GAMESTATE_MODEL_NUT__ <- true;
+if(::CompLite.rawin("GameState")) return;
 
+::CompLite.GameState <- {};
 
-const ROUNDSTART_DELAY_INTERVAL = 2;
+const COMPLITE_ROUNDSTART_DELAY_INTERVAL = 2;
 
-class GameStateModel
+class ::CompLite.GameState.GameStateModel
 {
 	constructor(controller, director)
 	{
@@ -40,7 +40,7 @@ class GameStateModel
 			m_controller.TriggerSafeAreaOpen();
 		}
 		if(!m_bRoundStarted && m_bHeardAWS && m_bHeardCWS && m_bHeardGDI 
-			&& m_iRoundStartTime < Time()-ROUNDSTART_DELAY_INTERVAL)
+			&& m_iRoundStartTime < Time()-COMPLITE_ROUNDSTART_DELAY_INTERVAL)
 		{
 			m_bRoundStarted = true;
 			m_controller.TriggerRoundStart();
@@ -85,7 +85,7 @@ class GameStateModel
 	m_pDirector = null;
 }
 
-class GameStateListener
+class ::CompLite.GameState.GameStateListener
 {
 	// Called on round start. These may be multiples of these triggered, unfortunately.
 	function OnRoundStart() {}
@@ -122,7 +122,7 @@ class GameStateListener
 	function OnConvertWeaponSpawn(classname) {}
 }
 
-class GameStateController
+class ::CompLite.GameState.GameStateController
 {
 	function AddListener(listener)
 	{

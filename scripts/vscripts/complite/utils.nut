@@ -5,10 +5,10 @@
 // =============================================================================
 
 
-if(this.rawin("__INCLUDE_UTILS_NUT__")) return;
-__INCLUDE_UTILS_NUT__ <- true;
 
-DoIncludeScript("complite/globaltimers.nut", this);
+if(::CompLite.rawin("Utils")) return;
+::CompLite.Utils <- {};
+IncludeScript("complite/globaltimers.nut", ::CompLite);
 
 /* KeyReset
 	Create a KeyReset to track the state of a key before you change its value, and
@@ -31,7 +31,7 @@ DoIncludeScript("complite/globaltimers.nut", this);
 // it for "identical" resetting at a later time.
 // Assumes that while between Set() and Unset() calls no other entity will modify the
 // value of this key.
-class ::KeyReset
+class ::CompLite.Utils.KeyReset
 {
 	constructor(owner, key)
 	{
@@ -77,23 +77,23 @@ class ::KeyReset
 	Class which handles resetting the mob timer without spawning CI.
 	
 	e.g.
-	::g_MobTimerCntl = ZeroMobReset(Director, DirectorOptions, g_FrameTimer);
+	g_MobTimerCntl = ZeroMobReset(Director, DirectorOptions, g_FrameTimer);
 	
 	then later on some event
-	::g_MobTimerCntl.ZeroMobReset();
+	g_MobTimerCntl.ZeroMobReset();
 	
 
  */
 // Can reset the mob spawn timer at any point without
 // triggering an CI to spawn. Should not demolish any other state settings.
-class ZeroMobReset extends TimerCallback
+class ::CompLite.Utils.ZeroMobReset extends Timers.TimerCallback
 {
 	// Initialize with Director, DirectorOptions, and a GlobalFrameTimer
 	constructor(director, dopts, timer)
 	{
 		m_director = director;
 		m_timer = timer;
-		m_mobsizesetting = ::KeyReset(dopts, "MobSpawnSize");
+		m_mobsizesetting = ::CompLite.Utils.KeyReset(dopts, "MobSpawnSize");
 	}
 	/* ZeroMobReset()
 	Resets the director's mob timer.
@@ -121,4 +121,26 @@ class ZeroMobReset extends TimerCallback
 	m_director = null;
 	m_timer = null;
 	m_mobsizesetting = null;
+}
+
+class ::CompLite.Utils.MapInfo {
+	function IdentifyMap(EntList)
+	{
+		isIntro = EntList.FindByName(null, "fade_intro") != null
+			|| EntList.FindByName(null, "lcs_intro") != null;
+	}
+	isIntro = false
+	isFinale = false
+	mapname = null
+	chapter = 0
+}
+
+::CompLite.Utils.KillEntity <- function(ent)
+{
+	DoEntFire("!activator", "kill", "", 0, ent, null);
+}
+
+::CompLite.Utils.GetCurrentRound <- function() 
+{ 
+	return ::CompLite.Globals.iRoundCount;
 }

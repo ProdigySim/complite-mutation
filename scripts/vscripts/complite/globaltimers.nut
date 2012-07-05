@@ -34,10 +34,10 @@
  */
 
 // double include protection
-if(this.rawin("__INCLUDE_GLOBALTIMERS_NUT__")) return;
-__INCLUDE_GLOBALTIMERS_NUT__ <- true;
+if(::CompLite.rawin("Timers")) return;
+::CompLite.Timers <- {};
 
-class TimerCallback
+class ::CompLite.Timers.TimerCallback
 {
 	/* OnTimerElapsed()
 	Executed once the timer is elapsed in a GlobalTimer
@@ -45,7 +45,7 @@ class TimerCallback
 	function OnTimerElapsed() {}
 }
 
-class ::GlobalTimer
+class ::CompLite.Timers.GlobalTimer
 {
 	// Returns the current time in some format that supports arithmetic operations
 	// Overload this in your final class
@@ -92,13 +92,13 @@ class ::GlobalTimer
 	m_cbtimes = [];
 }
 
-class GlobalSecondsTimer extends GlobalTimer
+class ::CompLite.Timers.GlobalSecondsTimer extends ::CompLite.Timers.GlobalTimer
 {
 	// Returns the current time in seconds (internal use)
 	function GetCurrentTime() { return Time(); }
 }
 
-class GlobalFrameTimer extends GlobalTimer
+class ::CompLite.Timers.GlobalFrameTimer extends ::CompLite.Timers.GlobalTimer
 {
 	// Returns the current time in frames (internal use)
 	function GetCurrentTime()
@@ -113,7 +113,7 @@ class GlobalFrameTimer extends GlobalTimer
 	{
 		// TODO: Integer overflow after 180+ hours on the round?
 		m_curFrame++;
-		::GlobalTimer.Update();
+		::CompLite.Timers.GlobalTimer.Update();
 	}
 	m_curFrame = 0;
 }
