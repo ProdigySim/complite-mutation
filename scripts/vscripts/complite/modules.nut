@@ -22,7 +22,7 @@ enum SIClass {
 
 class ::CompLite.Modules.MsgGSL extends ::CompLite.GameState.GameStateListener
 {
-	function OnRoundStart() { Msg("MsgGSL: OnRoundStart()\n"); }
+	function OnRoundStart(roundNumber) { Msg("MsgGSL: OnRoundStart("+roundNumber+")\n"); }
 	function OnSafeAreaOpened() { Msg("MsgGSL: OnSafeAreaOpened()\n"); }
 	function OnTankEntersPlay() { Msg("MsgGSL: OnTankEntersPlay()\n"); }
 	function OnTankLeavesPlay() { Msg("MsgGSL: OnTankLeavesPlay()\n"); }
@@ -138,7 +138,7 @@ class ::CompLite.Modules.BasicItemSystems extends ::CompLite.GameState.GameState
 	{
 		m_removalTable = removalTable;
 		m_convertTable = convertTable;
-		m_defaultItemList = defaultItemList
+		m_defaultItemList = defaultItemList;
 	}
 	function OnAllowWeaponSpawn(classname)
 	{
@@ -193,7 +193,7 @@ class ::CompLite.Modules.ItemControl extends ::CompLite.GameState.GameStateListe
 		m_removalTable = removalTable;
 		m_setCountTable = setCountTable;
 	}
-	function OnRoundStart()
+	function OnRoundStart(roundNumber)
 	{
 		Msg("ItemControl OnRoundStart()\n");
 		// This will run multiple times per round in certain cases...
@@ -279,11 +279,12 @@ class ::CompLite.Modules.HRControl extends ::CompLite.GameState.GameStateListene
 	}
 	function OnGetDefaultItem(idx)
 	{
-		if(!m_bTriggeredOnce)
+		local round = ::CompLite.Utils.GetCurrentRound();
+		if(round > 0 && !m_bTriggeredThisRound[round-1])
 		{
 			// Process HRs next frame after they're handed out.
 			m_pTimer.AddTimer(2,this);	
-			m_bTriggeredOnce = true;
+			m_bTriggeredThisRound[round-1] = true;
 		}
 	}
 
@@ -297,10 +298,14 @@ class ::CompLite.Modules.HRControl extends ::CompLite.GameState.GameStateListene
 			hrList.push(ent);
 		}
 		Msg("Found "+hrList.len()+" HRs this check\n");
-		if(hrList.len() <= 1) return;
 		
-		// Save 1 HR at random
-		hrList.remove(RandomInt(0,hrList.len()-1));
+		if(!::CompLite.Globals.MapInfo.isIntro)
+		{
+			if(hrList.len() <= 1) return;
+			
+			// Save 1 HR at random
+			hrList.remove(RandomInt(0,hrList.len()-1));
+		}
 
 		// Delete the rest
 		foreach(hr in hrList)
@@ -310,5 +315,5 @@ class ::CompLite.Modules.HRControl extends ::CompLite.GameState.GameStateListene
 	}
 	m_pEntities = null;
 	m_pTimer = null;
-	m_bTriggeredOnce = false;
+	m_bTriggeredThisRound = [false, false];
 }

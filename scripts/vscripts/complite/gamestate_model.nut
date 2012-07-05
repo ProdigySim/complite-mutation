@@ -43,7 +43,7 @@ class ::CompLite.GameState.GameStateModel
 			&& m_iRoundStartTime < Time()-COMPLITE_ROUNDSTART_DELAY_INTERVAL)
 		{
 			m_bRoundStarted = true;
-			m_controller.TriggerRoundStart();
+			m_controller.TriggerRoundStart(::CompLite.Utils.GetCurrentRound());
 		}
 	}
 	function OnAllowWeaponSpawn( classname )
@@ -69,6 +69,16 @@ class ::CompLite.GameState.GameStateModel
 		return m_controller.TriggerPCZSpawn(id);
 	}
 
+	function Reset()
+	{
+		m_bRoundStarted = false;
+		m_bHeardAWS = false;
+		m_bHeardCWS = false;
+		m_bHeardGDI = false;
+		m_iRoundStartTime = 0;
+		m_bLastUpdateTankInPlay = false;
+		m_bLastUpdateSafeAreaOpened = false;
+	}
 
 	// Check for various round-start even. ts before triggering OnRoundStart()
 	m_bRoundStarted = false;
@@ -79,8 +89,6 @@ class ::CompLite.GameState.GameStateModel
 
 	m_bLastUpdateTankInPlay = false;
 	m_bLastUpdateSafeAreaOpened = false;
-	m_bNewRoundStart = false;
-	m_iRoundStartTime = 0;
 	m_controller = null;
 	m_pDirector = null;
 }
@@ -88,7 +96,7 @@ class ::CompLite.GameState.GameStateModel
 class ::CompLite.GameState.GameStateListener
 {
 	// Called on round start. These may be multiples of these triggered, unfortunately.
-	function OnRoundStart() {}
+	function OnRoundStart(roundNumber) {}
 	// Called when a player leaves saferoom or the saferoom timer counts down
 	function OnSafeAreaOpened() {}
 	// Called when tank spawns
@@ -129,10 +137,10 @@ class ::CompLite.GameState.GameStateController
 		m_listeners.push(listener)
 	}
 
-	function TriggerRoundStart()
+	function TriggerRoundStart(roundNumber)
 	{
 		foreach(listener in m_listeners)
-			listener.OnRoundStart();
+			listener.OnRoundStart(roundNumber);
 	}
 	function TriggerSafeAreaOpen()
 	{

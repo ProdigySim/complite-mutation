@@ -4,44 +4,17 @@
 // All rights reserved.
 // =============================================================================
 
-DirectorOptions <-
-{
-	ActiveChallenge = 1
-
-	cm_ProhibitBosses = 0
-	cm_AllowPillConversion = 0
-	
-	function AllowWeaponSpawn( classname ) 
-	{ 
-		return ::CompLite.Globals.GSM.OnAllowWeaponSpawn(classname);
-	}
-	function ConvertWeaponSpawn( classname ) 
-	{ 
-		return ::CompLite.Globals.GSM.OnConvertWeaponSpawn(classname);
-	}
-	function GetDefaultItem( idx ) 
-	{
-		return ::CompLite.Globals.GSM.OnGetDefaultItem(idx);
-	}
-	function ConvertZombieClass( id ) 
-	{ 
-		return ::CompLite.Globals.GSM.OnConvertZombieClass(id);
-	}
-}
-
-function Update()
-{
-	::CompLite.Globals.Timer.Update();
-	::CompLite.Globals.FrameTimer.Update();
-	::CompLite.Globals.GSM.DoFrameUpdate();
-}
 
 if(getroottable().rawin("CompLite"))
 {
 	::CompLite.Globals.iRoundCount++;
 	Msg("CompLite starting round "+::CompLite.Utils.GetCurrentRound()+"\n");
+	::CompLite.Globals.GSM.Reset();
 	::CompLite.Globals.MapInfo.IdentifyMap(Entities);
 	Msg("Map is intro? "+::CompLite.Globals.MapInfo.isIntro+"\n");
+	
+	DirectorOptions <- ::CompLite.ChallengeScript.DirectorOptions;
+	Update <- CompLite.ChallengeScript.Update;
 	return;
 }
 
@@ -51,7 +24,44 @@ Msg("Activating Mutation CompLite\n");
 	Globals = {
 		iRoundCount = 0
 	}
+	ChallengeScript = {
+		DirectorOptions = {
+			ActiveChallenge = 1
+
+			cm_ProhibitBosses = 0
+			cm_AllowPillConversion = 0
+			
+			function AllowWeaponSpawn( classname ) 
+			{ 
+				return ::CompLite.Globals.GSM.OnAllowWeaponSpawn(classname);
+			}
+			function ConvertWeaponSpawn( classname ) 
+			{ 
+				return ::CompLite.Globals.GSM.OnConvertWeaponSpawn(classname);
+			}
+			function GetDefaultItem( idx ) 
+			{
+				return ::CompLite.Globals.GSM.OnGetDefaultItem(idx);
+			}
+			function ConvertZombieClass( id ) 
+			{ 
+				return ::CompLite.Globals.GSM.OnConvertZombieClass(id);
+			}
+		}
+
+		function Update()
+		{
+			::CompLite.Globals.Timer.Update();
+			::CompLite.Globals.FrameTimer.Update();
+			::CompLite.Globals.GSM.DoFrameUpdate();
+		}
+	}
 }
+
+DirectorOptions <- ::CompLite.ChallengeScript.DirectorOptions;
+Update <- CompLite.ChallengeScript.Update;
+
+
 
 IncludeScript("complite/gamestate_model.nut", ::CompLite);
 IncludeScript("complite/globaltimers.nut", ::CompLite);
@@ -69,22 +79,17 @@ g_MobResetti <- ::CompLite.Globals.MobResetti <- CompLite.Utils.ZeroMobReset(Dir
 
 Modules <- ::CompLite.Modules;
 
+g_MapInfo.IdentifyMap(Entities);
+
 g_GSC.AddListener(Modules.MsgGSL());
 g_GSC.AddListener(Modules.SpitterControl(Director, DirectorOptions));
 g_GSC.AddListener(Modules.MobControl(g_MobResetti));
 
-myDefaultItems <-
-[
-	"weapon_pain_pills",
-	"weapon_pistol",
-];
+
 // Give out hunting rifles on non-intro maps.
 // But limit them to 1 of each.
-if(!g_MapInfo.isIntro)
-{
-	myDefaultItems.push("weapon_hunting_rifle");
-	g_GSC.AddListener(Modules.HRControl(Entities, g_FrameTimer));
-}
+g_GSC.AddListener(Modules.HRControl(Entities, g_FrameTimer));
+
 
 g_GSC.AddListener(
 	Modules.BasicItemSystems(
@@ -125,7 +130,11 @@ g_GSC.AddListener(
 		weapon_vomitjar = "weapon_vomitjar_spawn"
 		},
 		// Default item list
-		myDefaultItems
+		[
+			"weapon_pain_pills",
+			"weapon_pistol",
+			"weapon_hunting_rifle"
+		]
 	)
 );
 
