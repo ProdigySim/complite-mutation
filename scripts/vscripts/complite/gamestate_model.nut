@@ -76,7 +76,6 @@ class ::CompLite.GameState.GameStateModel
 		m_bHeardCWS = false;
 		m_bHeardGDI = false;
 		m_iRoundStartTime = 0;
-		m_bLastUpdateTankInPlay = false;
 		m_bLastUpdateSafeAreaOpened = false;
 	}
 

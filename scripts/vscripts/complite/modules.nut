@@ -277,27 +277,48 @@ class ::CompLite.Modules.HRControl extends ::CompLite.GameState.GameStateListene
 		m_pEntities = entlist;
 		m_pTimer = gtimer;
 	}
+	
+	function QueueCheck()
+	{
+		if(!m_bCheckInProgress)
+		{
+			// 2 seconds after any GDI or rstart
+			m_bCheckInProgress = true;
+			//Msg("Queueing HR Check at "+Time()+"\n");
+			m_pTimer.AddTimer(2,this);
+		}
+		else
+		{
+			m_bCheckQueued = true;
+		}
+	}
 	function OnGetDefaultItem(idx)
 	{
 		local round = ::CompLite.Utils.GetCurrentRound();
-		if(round > 0 && !m_bTriggeredThisRound[round-1])
-		{
-			// Process HRs 2s after they're handed out
-			m_pTimer.AddTimer(2,this);	
-			m_bTriggeredThisRound[round-1] = true;
-		}
+		if(round > 0 && m_bPostRoundStart[round-1]) QueueCheck();
+	}
+	function OnRoundStart(roundNumber)
+	{
+		QueueCheck();
+		m_bPostRoundStart[roundNumber-1] = true;
 	}
 
 	// Not actually inherited but it doesn't need to be.
 	function OnTimerElapsed()
 	{
+		m_bCheckInProgress = false;
+		if(m_bCheckQueued)
+		{
+			m_bCheckQueued = false;
+			QueueCheck();
+		}
 		local ent = null;
 		local hrList = [];
 		while((ent = m_pEntities.FindByClassname(ent, "weapon_hunting_rifle")) != null)
 		{
 			hrList.push(ent);
 		}
-		Msg("Found "+hrList.len()+" HRs this check\n");
+		//Msg("Found "+hrList.len()+" HRs this check at "+Time()+"\n");
 		
 		if(!::CompLite.Globals.MapInfo.isIntro)
 		{
@@ -306,6 +327,8 @@ class ::CompLite.Modules.HRControl extends ::CompLite.GameState.GameStateListene
 			// Save 1 HR at random
 			hrList.remove(RandomInt(0,hrList.len()-1));
 		}
+		
+		//Msg("Still have "+hrList.len()+"!\n");
 
 		// Delete the rest
 		foreach(hr in hrList)
@@ -315,5 +338,7 @@ class ::CompLite.Modules.HRControl extends ::CompLite.GameState.GameStateListene
 	}
 	m_pEntities = null;
 	m_pTimer = null;
-	m_bTriggeredThisRound = [false, false];
+	m_bCheckInProgress = false;
+	m_bPostRoundStart = [false,false];
+	m_bCheckQueued = false;
 }

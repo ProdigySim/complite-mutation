@@ -18,7 +18,7 @@ if(getroottable().rawin("CompLite"))
 	return;
 }
 
-Msg("Activating Mutation CompLite\n");
+Msg("Activating Mutation CompLite v3.0\n");
 
 ::CompLite <- {
 	Globals = {
@@ -59,7 +59,7 @@ Msg("Activating Mutation CompLite\n");
 }
 
 DirectorOptions <- ::CompLite.ChallengeScript.DirectorOptions;
-Update <- CompLite.ChallengeScript.Update;
+Update <- ::CompLite.ChallengeScript.Update;
 
 
 
@@ -81,7 +81,9 @@ Modules <- ::CompLite.Modules;
 
 g_MapInfo.IdentifyMap(Entities);
 
-g_GSC.AddListener(Modules.MsgGSL());
+// Uncomment to add a debug event listener
+//g_GSC.AddListener(Modules.MsgGSL());
+
 g_GSC.AddListener(Modules.SpitterControl(Director, DirectorOptions));
 g_GSC.AddListener(Modules.MobControl(g_MobResetti));
 

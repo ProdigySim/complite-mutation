@@ -47,6 +47,11 @@ class ::CompLite.Timers.TimerCallback
 
 class ::CompLite.Timers.GlobalTimer
 {
+	constructor()
+	{
+		m_callbacks = array(0);
+		m_cbtimes = array(0);
+	}
 	// Returns the current time in some format that supports arithmetic operations
 	// Overload this in your final class
 	function GetCurrentTime() { assert(null) }
@@ -58,9 +63,11 @@ class ::CompLite.Timers.GlobalTimer
 	{
 		while(m_cbtimes.len() && m_cbtimes[0] < GetCurrentTime())
 		{
-			m_callbacks[0].OnTimerElapsed();
+			//Msg("Executing timer at "+GetCurrentTime()+" ("+Time()+") elapsed "+m_cbtimes[0]+"\n");
+			local cb = m_callbacks[0];
 			m_callbacks.remove(0);
 			m_cbtimes.remove(0);
+			cb.OnTimerElapsed();
 		}
 	}
 	
@@ -72,6 +79,7 @@ class ::CompLite.Timers.GlobalTimer
 	function AddTimer(time, timer)
 	{
 		local cbtime = GetCurrentTime() + time;
+		//Msg("Adding time at "+GetCurrentTime()+" ("+Time()+") for "+cbtime+"\n");
 		// Insert sorted Ascending by end timestamp (cbtime) into callbacks list
 		local i = 0;
 		// TODO: Binary search
@@ -88,8 +96,8 @@ class ::CompLite.Timers.GlobalTimer
 		}
 	}
 
-	m_callbacks = [];
-	m_cbtimes = [];
+	m_callbacks = null;
+	m_cbtimes = null;
 }
 
 class ::CompLite.Timers.GlobalSecondsTimer extends ::CompLite.Timers.GlobalTimer
