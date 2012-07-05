@@ -282,7 +282,7 @@ class ::CompLite.Modules.HRControl extends ::CompLite.GameState.GameStateListene
 		local round = ::CompLite.Utils.GetCurrentRound();
 		if(round > 0 && !m_bTriggeredThisRound[round-1])
 		{
-			// Process HRs next frame after they're handed out.
+			// Process HRs 2s after they're handed out
 			m_pTimer.AddTimer(2,this);	
 			m_bTriggeredThisRound[round-1] = true;
 		}
