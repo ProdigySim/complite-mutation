@@ -4,10 +4,10 @@
 // All rights reserved.
 // =============================================================================
 
-if(::CompLite.rawin("Modules")) return;
-::CompLite.Modules <- {};
-IncludeScript("complite/gamestate_model.nut", ::CompLite);
-IncludeScript("complite/utils.nut", ::CompLite);
+if("Modules" in this) return;
+Modules <- {};
+IncludeScript("complite/gamestate_model.nut", this);
+IncludeScript("complite/utils.nut", this);
 
 enum SIClass {
 	Smoker = 1,
@@ -20,7 +20,7 @@ enum SIClass {
 	Tank = 8
 }
 
-class ::CompLite.Modules.MsgGSL extends ::CompLite.GameState.GameStateListener
+class Modules.MsgGSL extends GameState.GameStateListener
 {
 	function OnRoundStart(roundNumber) { Msg("MsgGSL: OnRoundStart("+roundNumber+")\n"); }
 	function OnSafeAreaOpened() { Msg("MsgGSL: OnSafeAreaOpened()\n"); }
@@ -42,14 +42,14 @@ class ::CompLite.Modules.MsgGSL extends ::CompLite.GameState.GameStateListener
 	function OnConvertWeaponSpawn(classname) {}
 	*/
 	m_defaultItemCnt = 0;
-}
+};
 
-class ::CompLite.Modules.SpitterControl extends ::CompLite.GameState.GameStateListener
+class Modules.SpitterControl extends GameState.GameStateListener
 {
 	constructor(director, director_opts)
 	{
 		m_pDirector = director;
-		m_pSpitterLimit = ::CompLite.Utils.KeyReset(director_opts, "SpitterLimit");
+		m_pSpitterLimit = KeyReset(director_opts, "SpitterLimit");
 	}
 	function OnTankEntersPlay()
 	{
@@ -93,10 +93,11 @@ class ::CompLite.Modules.SpitterControl extends ::CompLite.GameState.GameStateLi
 	// reference to director options
 	m_pSpitterLimit = null;
 	m_pDirector = null;
-}
+	static KeyReset = Utils.KeyReset;
+};
 
 
-class ::CompLite.Modules.MobControl extends ::CompLite.GameState.GameStateListener
+class Modules.MobControl extends GameState.GameStateListener
 {
 	constructor(mobresetti)
 	{
@@ -130,9 +131,9 @@ class ::CompLite.Modules.MobControl extends ::CompLite.GameState.GameStateListen
 	m_oldMaxTime = 0; 
 	m_dopts = null; */
 	m_resetti = null;
-}
+};
 
-class ::CompLite.Modules.BasicItemSystems extends ::CompLite.GameState.GameStateListener
+class Modules.BasicItemSystems extends GameState.GameStateListener
 {
 	constructor(removalTable, convertTable, defaultItemList)
 	{
@@ -183,9 +184,9 @@ class ::CompLite.Modules.BasicItemSystems extends ::CompLite.GameState.GameState
 	m_removalTable = null;
 	m_convertTable = null;
 	m_defaultItemList = null;
-}
+};
 
-class ::CompLite.Modules.ItemControl extends ::CompLite.GameState.GameStateListener
+class Modules.ItemControl extends GameState.GameStateListener
 {
 	constructor(entlist, removalTable, setCountTable)
 	{
@@ -254,7 +255,7 @@ class ::CompLite.Modules.ItemControl extends ::CompLite.GameState.GameStateListe
 			Msg("Killing "+instances.len()+" "+classname+" out of "+(instances.len()+cnt)+" on the map.\n");
 			foreach(inst in instances)
 			{
-				::CompLite.Utils.KillEntity(inst);
+				KillEntity(inst);
 			}
 
 		}
@@ -268,9 +269,11 @@ class ::CompLite.Modules.ItemControl extends ::CompLite.GameState.GameStateListe
 	// <0: Set Count only
 	m_removalTable = null;
 	m_setCountTable = null;
-}
 
-class ::CompLite.Modules.HRControl extends ::CompLite.GameState.GameStateListener //, extends TimerCallback (no MI support)
+	static KillEntity = Utils.KillEntity;
+};
+
+class Modules.HRControl extends GameState.GameStateListener //, extends TimerCallback (no MI support)
 {
 	constructor(entlist, gtimer)
 	{
@@ -294,7 +297,7 @@ class ::CompLite.Modules.HRControl extends ::CompLite.GameState.GameStateListene
 	}
 	function OnGetDefaultItem(idx)
 	{
-		local round = ::CompLite.Utils.GetCurrentRound();
+		local round = GetCurrentRound();
 		if(round > 0 && m_bPostRoundStart[round-1]) QueueCheck();
 	}
 	function OnRoundStart(roundNumber)
@@ -341,4 +344,6 @@ class ::CompLite.Modules.HRControl extends ::CompLite.GameState.GameStateListene
 	m_bCheckInProgress = false;
 	m_bPostRoundStart = [false,false];
 	m_bCheckQueued = false;
-}
+	GetCurrentRound = Utils.GetCurrentRound;
+};
+

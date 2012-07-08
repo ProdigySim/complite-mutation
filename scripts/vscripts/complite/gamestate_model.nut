@@ -5,13 +5,13 @@
 // =============================================================================
 
 // double include protection
-if(::CompLite.rawin("GameState")) return;
+if("GameState" in this) return;
 
-::CompLite.GameState <- {};
+const GAMESTATE_ROUNDSTART_DELAY_INTERVAL = 2;
 
-const COMPLITE_ROUNDSTART_DELAY_INTERVAL = 2;
+GameState <- {};
 
-class ::CompLite.GameState.GameStateModel
+class GameState.GameStateModel
 {
 	constructor(controller, director)
 	{
@@ -90,9 +90,9 @@ class ::CompLite.GameState.GameStateModel
 	m_bLastUpdateSafeAreaOpened = false;
 	m_controller = null;
 	m_pDirector = null;
-}
+};
 
-class ::CompLite.GameState.GameStateListener
+class GameState.GameStateListener
 {
 	// Called on round start. These may be multiples of these triggered, unfortunately.
 	function OnRoundStart(roundNumber) {}
@@ -127,9 +127,9 @@ class ::CompLite.GameState.GameStateListener
 	// classname: Classname of the weapon that would spawned
 	// retun the classname that it should be converted to, or 0 for no conversion.
 	function OnConvertWeaponSpawn(classname) {}
-}
+};
 
-class ::CompLite.GameState.GameStateController
+class GameState.GameStateController
 {
 	function AddListener(listener)
 	{
@@ -208,4 +208,4 @@ class ::CompLite.GameState.GameStateController
 	}
 
 	m_listeners = []
-}
+};
