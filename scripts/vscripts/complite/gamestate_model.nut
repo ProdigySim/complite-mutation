@@ -6,10 +6,10 @@
 
 // double include protection
 if("GameState" in this) return;
-
-const GAMESTATE_ROUNDSTART_DELAY_INTERVAL = 2;
-
-GameState <- {};
+GameState <- {
+	ROUNDSTART_DELAY_INTERVAL = 2
+};
+IncludeScript("complite/utils.nut", this);
 
 class GameState.GameStateModel
 {
@@ -40,10 +40,10 @@ class GameState.GameStateModel
 			m_controller.TriggerSafeAreaOpen();
 		}
 		if(!m_bRoundStarted && m_bHeardAWS && m_bHeardCWS && m_bHeardGDI 
-			&& m_iRoundStartTime < Time()-COMPLITE_ROUNDSTART_DELAY_INTERVAL)
+			&& m_iRoundStartTime < Time()-m_roundstart_delay)
 		{
 			m_bRoundStarted = true;
-			m_controller.TriggerRoundStart(::CompLite.Utils.GetCurrentRound());
+			m_controller.TriggerRoundStart(GetCurrentRound());
 		}
 	}
 	function OnAllowWeaponSpawn( classname )
@@ -88,8 +88,11 @@ class GameState.GameStateModel
 
 	m_bLastUpdateTankInPlay = false;
 	m_bLastUpdateSafeAreaOpened = false;
+	
 	m_controller = null;
 	m_pDirector = null;
+	m_roundstart_delay = GameState.ROUNDSTART_DELAY_INTERVAL;
+	static GetCurrentRound = Utils.GetCurrentRound;
 };
 
 class GameState.GameStateListener

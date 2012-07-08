@@ -9,16 +9,6 @@ Modules <- {};
 IncludeScript("complite/gamestate_model.nut", this);
 IncludeScript("complite/utils.nut", this);
 
-enum SIClass {
-	Smoker = 1,
-	Boomer = 2,
-	Hunter = 3,
-	Spitter = 4,
-	Jockey = 5,
-	Charger = 6,
-	Witch = 7,
-	Tank = 8
-}
 
 class Modules.MsgGSL extends GameState.GameStateListener
 {
@@ -94,6 +84,7 @@ class Modules.SpitterControl extends GameState.GameStateListener
 	m_pSpitterLimit = null;
 	m_pDirector = null;
 	static KeyReset = Utils.KeyReset;
+	static SIClass = Utils.SIClass;
 };
 
 

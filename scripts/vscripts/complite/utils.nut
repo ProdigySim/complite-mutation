@@ -6,7 +6,18 @@
 
 
 if("Utils" in this) return;
-Utils <- {};
+Utils <- {
+	SIClass = {
+		Smoker = 1
+		Boomer = 2
+		Hunter = 3
+		Spitter = 4
+		Jockey = 5
+		Charger = 6
+		Witch = 7
+		Tank = 8
+	}
+};
 IncludeScript("complite/globaltimers.nut", this);
 
 /* KeyReset
