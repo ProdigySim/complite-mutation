@@ -26,8 +26,6 @@ function InitializeCompLite(parentTable = getroottable() , customNameSpace = "Co
 	IncludeScript("complite/utils.nut", CompLite);
 	IncludeScript("complite/modules.nut", CompLite);
 	
-	CompLite.Globals <- CompLiteGlobals(CompLite, Director, DirectorOptions);
-	
 	CompLite.ChallengeScript <- {
 		CompLite = CompLite
 		DirectorOptions = {
@@ -57,6 +55,9 @@ function InitializeCompLite(parentTable = getroottable() , customNameSpace = "Co
 			CompLite.Globals.GSM.DoFrameUpdate();
 		}
 	}
+
+	CompLite.Globals <- CompLiteGlobals(CompLite, Director, CompLite.ChallengeScript.DirectorOptions);
+
 	ChallengeScript.DirectorOptions <- CompLite.ChallengeScript.DirectorOptions;
 	ChallengeScript.Update <- CompLite.ChallengeScript.Update;
 
