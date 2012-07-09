@@ -75,7 +75,7 @@ class Modules.SpitterControl extends GameState.GameStateListener
 
 		// Mark that this SI to be spawned is most recently spawned now.
 		SpawnLastUsed[newClass] = Time();
-		Msg("Spawning SI Class "+newClass+".\n");
+		// Msg("Spawning SI Class "+newClass+".\n");
 		return newClass;
 	}
 	// List of last spawned time for each SI class
