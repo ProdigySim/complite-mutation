@@ -6,7 +6,7 @@
 
 IncludeScript("complite/globals.nut", this);
 
-CompLite = InitializeCompLite(getroottable(), "CompLite", this);
+CompLite = InitializeCompLite();
 
 // Don't need to do anything else if we're not first load
 if(CompLite.Globals.GetCurrentRound() > 0)
