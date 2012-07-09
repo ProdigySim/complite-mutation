@@ -9,7 +9,13 @@ IncludeScript("complite/globals.nut", this);
 CompLite = InitializeCompLite(getroottable(), "CompLite", this);
 
 // Don't need to do anything else if we're not first load
-if(CompLite.Globals.GetCurrentRound() == 0) return;
+if(CompLite.Globals.GetCurrentRound() > 0)
+{
+	Msg("CompLite Starting Round "+CompLite.Globals.GetCurrentRound()+" on ");
+	if(CompLite.Globals.MapInfo.isIntro) Msg("an intro map.\n");
+	else Msg("a non-intro map.\n");
+	return;
+}
 
 Msg("Activating Mutation CompLite v3.0\n");
 
@@ -17,15 +23,14 @@ DirectorOptions.ActiveChallenge <- 1
 DirectorOptions.cm_ProhibitBosses <- 0
 DirectorOptions.cm_AllowPillConversion <- 0
 
-g_Timer <- CompLite.Globals.Timer;
-g_FrameTimer <- CompLite.Globals.FrameTimer;
-g_MapInfo <- CompLite.Globals.MapInfo;
-g_GSC <- CompLite.Globals.GSC;
-g_GSM <- CompLite.Globals.GSM;
-g_MobResetti <- CompLite.Globals.MobResetti;
-Modules <- CompLite.Modules;
-
-g_MapInfo.IdentifyMap(Entities);
+// Name shortening references
+local g_Timer = CompLite.Globals.Timer;
+local g_FrameTimer = CompLite.Globals.FrameTimer;
+local g_MapInfo = CompLite.Globals.MapInfo;
+local g_GSC = CompLite.Globals.GSC;
+local g_GSM = CompLite.Globals.GSM;
+local g_MobResetti = CompLite.Globals.MobResetti;
+local Modules = CompLite.Modules;
 
 // Uncomment to add a debug event listener
 //g_GSC.AddListener(Modules.MsgGSL());
