@@ -4,80 +4,26 @@
 // All rights reserved.
 // =============================================================================
 
+IncludeScript("complite/globals.nut", this);
 
-if(getroottable().rawin("CompLite"))
-{
-	::CompLite.Globals.iRoundCount++;
-	Msg("CompLite starting round "+::CompLite.Utils.GetCurrentRound()+"\n");
-	::CompLite.Globals.GSM.Reset();
-	::CompLite.Globals.MapInfo.IdentifyMap(Entities);
-	Msg("Map is intro? "+::CompLite.Globals.MapInfo.isIntro+"\n");
-	
-	DirectorOptions <- ::CompLite.ChallengeScript.DirectorOptions;
-	Update <- CompLite.ChallengeScript.Update;
-	return;
-}
+CompLite = InitializeCompLite(getroottable(), "CompLite", this);
+
+// Don't need to do anything else if we're not first load
+if(CompLite.Globals.GetCurrentRound() == 0) return;
 
 Msg("Activating Mutation CompLite v3.0\n");
 
-::CompLite <- {
-	Globals = {
-		iRoundCount = 0
-	}
-	ChallengeScript = {
-		DirectorOptions = {
-			ActiveChallenge = 1
+DirectorOptions.ActiveChallenge <- 1
+DirectorOptions.cm_ProhibitBosses <- 0
+DirectorOptions.cm_AllowPillConversion <- 0
 
-			cm_ProhibitBosses = 0
-			cm_AllowPillConversion = 0
-			
-			function AllowWeaponSpawn( classname ) 
-			{ 
-				return ::CompLite.Globals.GSM.OnAllowWeaponSpawn(classname);
-			}
-			function ConvertWeaponSpawn( classname ) 
-			{ 
-				return ::CompLite.Globals.GSM.OnConvertWeaponSpawn(classname);
-			}
-			function GetDefaultItem( idx ) 
-			{
-				return ::CompLite.Globals.GSM.OnGetDefaultItem(idx);
-			}
-			function ConvertZombieClass( id ) 
-			{ 
-				return ::CompLite.Globals.GSM.OnConvertZombieClass(id);
-			}
-		}
-
-		function Update()
-		{
-			::CompLite.Globals.Timer.Update();
-			::CompLite.Globals.FrameTimer.Update();
-			::CompLite.Globals.GSM.DoFrameUpdate();
-		}
-	}
-}
-
-DirectorOptions <- ::CompLite.ChallengeScript.DirectorOptions;
-Update <- ::CompLite.ChallengeScript.Update;
-
-
-
-IncludeScript("complite/gamestate_model.nut", ::CompLite);
-IncludeScript("complite/globaltimers.nut", ::CompLite);
-IncludeScript("complite/utils.nut", ::CompLite);
-IncludeScript("complite/modules.nut", ::CompLite);
-
-g_Timer <- ::CompLite.Globals.Timer <- CompLite.Timers.GlobalSecondsTimer()
-g_FrameTimer <- ::CompLite.Globals.FrameTimer <- CompLite.Timers.GlobalFrameTimer()
-g_MapInfo <- ::CompLite.Globals.MapInfo <- CompLite.Utils.MapInfo()
-g_GSC <- ::CompLite.Globals.GSC <- CompLite.GameState.GameStateController()
-g_GSM <- ::CompLite.Globals.GSM <- CompLite.GameState.GameStateModel(g_GSC, Director)
-
-
-g_MobResetti <- ::CompLite.Globals.MobResetti <- CompLite.Utils.ZeroMobReset(Director, DirectorOptions, g_FrameTimer);
-
-Modules <- ::CompLite.Modules;
+g_Timer <- CompLite.Globals.Timer;
+g_FrameTimer <- CompLite.Globals.FrameTimer;
+g_MapInfo <- CompLite.Globals.MapInfo;
+g_GSC <- CompLite.Globals.GSC;
+g_GSM <- CompLite.Globals.GSM;
+g_MobResetti <- CompLite.Globals.MobResetti;
+Modules <- CompLite.Modules;
 
 g_MapInfo.IdentifyMap(Entities);
 

@@ -154,5 +154,5 @@ Utils.KillEntity <- function (ent)
 // TODO move/refactor...
 Utils.GetCurrentRound <- function () 
 { 
-	return ::CompLite.Globals.iRoundCount;
+	return ::CompLite.Globals.GetCurrentRound();
 }
