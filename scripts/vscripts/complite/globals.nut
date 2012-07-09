@@ -11,10 +11,8 @@ function InitializeCompLite(parentTable = getroottable() , customNameSpace = "Co
 	{
 		local CompLite = parentTable[customNameSpace];
 		CompLite.Globals.IncrementRoundNumber();
-		Msg("CompLite starting round "+CompLite.Utils.GetCurrentRound()+"\n");
 		CompLite.Globals.GSM.Reset();
 		CompLite.Globals.MapInfo.IdentifyMap(Entities);
-		Msg("Map is intro? "+CompLite.Globals.MapInfo.isIntro+"\n");
 	
 		ChallengeScript.DirectorOptions <- CompLite.ChallengeScript.DirectorOptions;
 		ChallengeScript.Update <- CompLite.ChallengeScript.Update;
