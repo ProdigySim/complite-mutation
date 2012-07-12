@@ -266,10 +266,10 @@ class Modules.ItemControl extends GameState.GameStateListener
 
 class Modules.HRControl extends GameState.GameStateListener //, extends TimerCallback (no MI support)
 {
-	constructor(entlist, gtimer)
+	constructor(entlist, globals)
 	{
 		m_pEntities = entlist;
-		m_pTimer = gtimer;
+		m_pGlobals = globals;
 	}
 	
 	function QueueCheck()
@@ -278,8 +278,8 @@ class Modules.HRControl extends GameState.GameStateListener //, extends TimerCal
 		{
 			// 2 seconds after any GDI or rstart
 			m_bCheckInProgress = true;
-			//Msg("Queueing HR Check at "+Time()+"\n");
-			m_pTimer.AddTimer(2,this);
+
+			m_pGlobals.FrameTimer.AddTimer(2,this);
 		}
 		else
 		{
@@ -288,7 +288,7 @@ class Modules.HRControl extends GameState.GameStateListener //, extends TimerCal
 	}
 	function OnGetDefaultItem(idx)
 	{
-		local round = GetCurrentRound();
+		local round = m_pGlobals.GetCurrentRound();
 		if(round > 0 && m_bPostRoundStart[round-1]) QueueCheck();
 	}
 	function OnRoundStart(roundNumber)
@@ -314,7 +314,7 @@ class Modules.HRControl extends GameState.GameStateListener //, extends TimerCal
 		}
 		//Msg("Found "+hrList.len()+" HRs this check at "+Time()+"\n");
 		
-		if(!::CompLite.Globals.MapInfo.isIntro)
+		if(!m_pGlobals.MapInfo.isIntro)
 		{
 			if(hrList.len() <= 1) return;
 			
@@ -327,7 +327,7 @@ class Modules.HRControl extends GameState.GameStateListener //, extends TimerCal
 		// Delete the rest
 		foreach(hr in hrList)
 		{
-			::CompLite.Utils.KillEntity(hr);
+			KillEntity(hr);
 		}
 	}
 	m_pEntities = null;
@@ -335,6 +335,7 @@ class Modules.HRControl extends GameState.GameStateListener //, extends TimerCal
 	m_bCheckInProgress = false;
 	m_bPostRoundStart = [false,false];
 	m_bCheckQueued = false;
-	GetCurrentRound = Utils.GetCurrentRound;
+	m_pGlobals = null;
+	static KillEntity = Utils.KillEntity;	
 };
 

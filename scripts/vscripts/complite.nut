@@ -41,7 +41,7 @@ g_GSC.AddListener(Modules.MobControl(g_MobResetti));
 
 // Give out hunting rifles on non-intro maps.
 // But limit them to 1 of each.
-g_GSC.AddListener(Modules.HRControl(Entities, g_Timer));
+g_GSC.AddListener(Modules.HRControl(Entities, CompLite.Globals));
 
 
 g_GSC.AddListener(
