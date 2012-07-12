@@ -294,6 +294,10 @@ class Modules.HRControl extends GameState.GameStateListener //, extends TimerCal
 	function OnRoundStart(roundNumber)
 	{
 		QueueCheck();
+		if(!m_bPostRoundStart[roundNumber-1])
+		{
+			m_pGlobals.MapInfo.IdentifyMap(m_pEntities);
+		}
 		m_bPostRoundStart[roundNumber-1] = true;
 	}
 
