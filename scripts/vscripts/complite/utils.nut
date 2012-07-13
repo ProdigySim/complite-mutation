@@ -167,6 +167,9 @@ class Utils.MapInfo {
 		isIntro = EntList.FindByName(null, "fade_intro") != null
 			|| EntList.FindByName(null, "lcs_intro") != null;
 
+		// also will become true in scavenge gamemode!
+		hasScavengeEvent = EntList.FindByClassname(null, "point_prop_use_target") != null;
+
 		saferoomPoints = [];
 
 		if(isIntro)
@@ -180,6 +183,9 @@ class Utils.MapInfo {
 		{
 			saferoomPoints.push(ent.GetOrigin());
 		}
+
+		if(IsMapC1M2(EntList)) mapname = "c1m2_streets";
+		else mapname = "unknown";
 	}
 	function IsPointNearAnySaferoom(point, distance=2000.0)
 	{
@@ -195,8 +201,18 @@ class Utils.MapInfo {
 	{
 		return IsPointNearAnySaferoom(entity.GetOrigin(), distance);
 	}
+	function IsMapC1M2(EntList)
+	{
+		// Identified by a entity with a given model at a given point
+		local ent = EntList.FindByModel(null, "models/destruction_tanker/c1m2_cables_far.mdl");
+		if(ent != null 
+			&& (ent.GetOrigin() - Vector(-6856.0,-896.0,384.664)).Length() < 1.0) return true;
+		return false;
+	}
 	isIntro = false
 	isFinale = false
+	hasScavengeEvent = false;
+
 	saferoomPoints = null;
 	mapname = null
 	chapter = 0

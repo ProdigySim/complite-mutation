@@ -17,6 +17,8 @@ if(CompLite.Globals.GetCurrentRound() > 0)
 	else Msg("a non-intro map.\n");
 
 	Msg("Found "+mi.saferoomPoints.len()+" saferoom points.\n");
+	Msg("Map has a scavenge event? " + mi.hasScavengeEvent + "\n");
+	Msg("MapName: "+mi.mapname+"\n");
 
 	return;
 }
