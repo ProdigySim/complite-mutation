@@ -36,6 +36,7 @@ local g_MapInfo = CompLite.Globals.MapInfo;
 local g_GSC = CompLite.Globals.GSC;
 local g_GSM = CompLite.Globals.GSM;
 local g_MobResetti = CompLite.Globals.MobResetti;
+local g_SafeEntList = CompLite.Globals.SafeEntList;
 local Modules = CompLite.Modules;
 
 // Uncomment to add a debug event listener
@@ -47,7 +48,7 @@ g_GSC.AddListener(Modules.MobControl(g_MobResetti));
 
 // Give out hunting rifles on non-intro maps.
 // But limit them to 1 of each.
-g_GSC.AddListener(Modules.HRControl(Entities, CompLite.Globals));
+g_GSC.AddListener(Modules.HRControl(g_SafeEntList, CompLite.Globals));
 
 
 g_GSC.AddListener(
@@ -98,7 +99,7 @@ g_GSC.AddListener(
 );
 
 g_GSC.AddListener(
-	Modules.ItemControl(Entities, 
+	Modules.ItemControl(g_SafeEntList, 
 	// Roundstart Weapon removal list
 	// Limit to value
 		{

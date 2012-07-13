@@ -221,7 +221,7 @@ class Utils.MapInfo {
 
 Utils.KillEntity <- function (ent)
 {
-	DoEntFire("!activator", "kill", "", 0, ent, null);
+	::CompLite.Globals.SafeEntList.KillEntity(ent);
 }
 
 Utils.ArrayToTable <- function (arr)

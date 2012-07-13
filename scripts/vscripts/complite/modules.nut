@@ -226,7 +226,7 @@ class Modules.ItemControl extends GameState.GameStateListener
 		}
 		
 		// Remove all targeted saferoom items before doing roundstart removals
-		foreach(entity in saferoomEnts) KillEntity(entity);
+		foreach(entity in saferoomEnts) m_entlist.KillEntity(entity);
 
 		foreach(classname,instances in tItemEnts)
 		{
@@ -258,7 +258,7 @@ class Modules.ItemControl extends GameState.GameStateListener
 			Msg("Killing "+instances.len()+" "+classname+" out of "+(instances.len()+cnt)+" on the map.\n");
 			foreach(inst in instances)
 			{
-				KillEntity(inst);
+				m_entlist.KillEntity(inst);
 			}
 		}
 	}
@@ -272,7 +272,6 @@ class Modules.ItemControl extends GameState.GameStateListener
 	m_saferoomRemoveList = null;
 	m_pMapInfo = null;
 	static ArrayToTable = Utils.ArrayToTable;
-	static KillEntity = Utils.KillEntity;
 };
 
 class Modules.HRControl extends GameState.GameStateListener //, extends TimerCallback (no MI support)
@@ -342,7 +341,7 @@ class Modules.HRControl extends GameState.GameStateListener //, extends TimerCal
 		// Delete the rest
 		foreach(hr in hrList)
 		{
-			KillEntity(hr);
+			m_pEntities.KillEntity(hr);
 		}
 	}
 	m_pEntities = null;
@@ -351,6 +350,5 @@ class Modules.HRControl extends GameState.GameStateListener //, extends TimerCal
 	m_bPostRoundStart = [false,false];
 	m_bCheckQueued = false;
 	m_pGlobals = null;
-	static KillEntity = Utils.KillEntity;	
 };
 

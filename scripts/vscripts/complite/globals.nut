@@ -29,6 +29,7 @@ function InitializeCompLite(parentTable = getroottable() , customNameSpace = "Co
 	IncludeScript("complite/globaltimers.nut", CompLite);
 	IncludeScript("complite/utils.nut", CompLite);
 	IncludeScript("complite/modules.nut", CompLite);
+	IncludeScript("complite/safe_entlist.nut", CompLite);
 	
 	CompLite.ChallengeScript <- {
 		CompLite = CompLite
@@ -60,7 +61,7 @@ function InitializeCompLite(parentTable = getroottable() , customNameSpace = "Co
 		}
 	}
 
-	CompLite.Globals <- CompLiteGlobals(CompLite, Director, CompLite.ChallengeScript.DirectorOptions);
+	CompLite.Globals <- CompLiteGlobals(CompLite, Director, CompLite.ChallengeScript.DirectorOptions, Entities);
 
 	ChallengeScript.DirectorOptions <- CompLite.ChallengeScript.DirectorOptions;
 	ChallengeScript.Update <- CompLite.ChallengeScript.Update;
@@ -71,7 +72,7 @@ function InitializeCompLite(parentTable = getroottable() , customNameSpace = "Co
 }
 
 class CompLiteGlobals {
-	constructor(NameSpace, director, dopts)
+	constructor(NameSpace, director, dopts, entlist)
 	{
 		Timer = NameSpace.Timers.GlobalSecondsTimer();
 		FrameTimer = NameSpace.Timers.GlobalFrameTimer();
@@ -79,6 +80,7 @@ class CompLiteGlobals {
 		GSC = NameSpace.GameState.GameStateController();
 		GSM = NameSpace.GameState.GameStateModel(GSC, director);
 		MobResetti = NameSpace.Utils.ZeroMobReset(director, dopts, FrameTimer);
+		SafeEntList = NameSpace.SafeEntList(entlist, FrameTimer);
 	}
 
 	function IncrementRoundNumber() { m_iRoundNumber++; }
@@ -90,6 +92,7 @@ class CompLiteGlobals {
 	GSM = null;
 	GSC = null;
 	MobResetti = null;
+	SafeEntList = null;
 	
 	// private
 	m_iRoundNumber = 0;
