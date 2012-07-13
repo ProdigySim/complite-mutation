@@ -40,6 +40,7 @@ class Modules.SpitterControl extends GameState.GameStateListener
 	{
 		m_pDirector = director;
 		m_pSpitterLimit = KeyReset(director_opts, "SpitterLimit");
+		SpawnLastUsed = array(5,0);
 	}
 	function OnTankEntersPlay()
 	{
@@ -56,30 +57,26 @@ class Modules.SpitterControl extends GameState.GameStateListener
 		// If a spitter is going to be spawned during tank,
 		if(id == SIClass.Spitter && m_pDirector.IsTankInPlay())
 		{
-			// Calculate the least recently used SI class
-			local min_idx = SIClass.Smoker;
-			local min = SpawnLastUsed[SIClass.Smoker];
-			for(local idx = SIClass.Boomer; idx <= SIClass.Charger; idx++)
-			{
-				if(idx == SIClass.Spitter) continue;
-				if(SpawnLastUsed[idx] < min)
-				{
-					min = SpawnLastUsed[idx];
-					min_idx = idx;
-				}
-			}
-			// We will spawn this instead
+			// Convert spitter to least recently used SI class
 			Msg("Converting SI Class "+id+" to class "+min_idx+".\n");
-			newClass = min_idx;
+			newClass = SpawnLastUsed[0];
 		}
-
-		// Mark that this SI to be spawned is most recently spawned now.
-		SpawnLastUsed[newClass] = Time();
 		// Msg("Spawning SI Class "+newClass+".\n");
 		return newClass;
 	}
+	function OnSpawnedPCZ(id)
+	{
+		// Mark that this SI to be spawned is most recently spawned now.
+		if(id != SIClass.Spitter)
+		{
+			// Low index = least recent
+			// High index = most recent
+			SpawnLastUsed.push(id);
+			SpawnLastUsed.remove(0);
+		}
+	}
 	// List of last spawned time for each SI class
-	SpawnLastUsed = array(10,0);
+	SpawnLastUsed = null;
 	// reference to director options
 	m_pSpitterLimit = null;
 	m_pDirector = null;
