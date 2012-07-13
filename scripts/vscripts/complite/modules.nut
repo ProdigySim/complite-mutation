@@ -179,11 +179,13 @@ class Modules.BasicItemSystems extends GameState.GameStateListener
 
 class Modules.ItemControl extends GameState.GameStateListener
 {
-	constructor(entlist, removalTable, setCountTable)
+	constructor(entlist, removalTable, setCountList, saferoomRemoveList, mapinfo)
 	{
 		m_entlist = entlist;
 		m_removalTable = removalTable;
-		m_setCountTable = setCountTable;
+		m_setCountList = ArrayToTable(setCountList);
+		m_saferoomRemoveList = ArrayToTable(saferoomRemoveList);
+		m_pMapInfo = mapinfo;
 	}
 	function OnRoundStart(roundNumber)
 	{
@@ -195,6 +197,7 @@ class Modules.ItemControl extends GameState.GameStateListener
 		local ent = m_entlist.First();
 		local classname = "";
 		local tItemEnts = {};
+		local saferoomEnts = [];
 
 		// Create an empty array for each item in our list.
 		foreach(key,val in m_removalTable)
@@ -205,16 +208,25 @@ class Modules.ItemControl extends GameState.GameStateListener
 		while(ent != null)
 		{
 			classname = ent.GetClassname()
-			if(classname in m_setCountTable)
+			if(classname in m_setCountList)
 			{
 				ent.__KeyValueFromInt("count", 1);
 			}
-			if(classname in m_removalTable)
+			if(classname in m_saferoomRemoveList && m_pMapInfo.IsEntityNearAnySaferoom(ent, 2000.0))
+			{
+				// Make a list of items which are in saferooms that need to be removed
+				// and don't track these entities for other removal.
+				saferoomEnts.push(ent);
+			}
+			else if(classname in m_removalTable)
 			{
 				tItemEnts[classname].push(ent);
 			}
 			ent=m_entlist.Next(ent);
 		}
+		
+		// Remove all targeted saferoom items before doing roundstart removals
+		foreach(entity in saferoomEnts) KillEntity(entity);
 
 		foreach(classname,instances in tItemEnts)
 		{
@@ -248,7 +260,6 @@ class Modules.ItemControl extends GameState.GameStateListener
 			{
 				KillEntity(inst);
 			}
-
 		}
 	}
 	// pointer to global Entity List
@@ -256,11 +267,11 @@ class Modules.ItemControl extends GameState.GameStateListener
 	// Table of entity classname, limit value pairs
 	// We do a roundstart remove of these items to keep the removals from being too greedy. Health items are odd.
 	// Melee weapons work better here, too. Plus we get the chance to set their count!
-	// 0+: Limit to value
-	// <0: Set Count only
 	m_removalTable = null;
-	m_setCountTable = null;
-
+	m_setCountList = null;
+	m_saferoomRemoveList = null;
+	m_pMapInfo = null;
+	static ArrayToTable = Utils.ArrayToTable;
 	static KillEntity = Utils.KillEntity;
 };
 

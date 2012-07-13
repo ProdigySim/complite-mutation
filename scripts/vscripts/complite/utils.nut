@@ -134,21 +134,85 @@ class Utils.ZeroMobReset extends Timers.TimerCallback
 	static KeyReset = Utils.KeyReset;
 };
 
+class Utils.Sphere {
+	constructor(center, radius)
+	{
+		m_vecOrigin = center;
+		m_flRadius = radius;
+	}
+	function GetOrigin()
+	{
+		return m_vecOrigin();
+	}
+	function GetRadius()
+	{
+		return m_flRadius;
+	}
+	// point: vector
+	function ContainsPoint(point)
+	{
+		return (m_vecOrigin - point).Length() <= m_flRadius;
+	}
+	function ContainsEntity(entity)
+	{
+		return ContainsPoint(entity.GetOrigin());
+	}
+	m_vecOrigin = null;
+	m_flRadius = null;
+}
+
 class Utils.MapInfo {
 	function IdentifyMap(EntList)
 	{
 		isIntro = EntList.FindByName(null, "fade_intro") != null
 			|| EntList.FindByName(null, "lcs_intro") != null;
+
+		saferoomPoints = [];
+
+		if(isIntro)
+		{
+			local ent = EntList.FindByName(null, "survivorPos_intro_01");
+			if(ent != null) saferoomPoints.push(ent.GetOrigin());
+		}
+
+		local ent = null;
+		while((ent = EntList.FindByClassname(ent, "prop_door_rotating_checkpoint")) != null)
+		{
+			saferoomPoints.push(ent.GetOrigin());
+		}
+	}
+	function IsPointNearAnySaferoom(point, distance=2000.0)
+	{
+		// We actually check if any saferoom is near the point...
+		local sphere = Sphere(point, distance);
+		foreach(pt in saferoomPoints)
+		{
+			if(sphere.ContainsPoint(pt)) return true;
+		}
+		return false;
+	}
+	function IsEntityNearAnySaferoom(entity, distance=2000.0)
+	{
+		return IsPointNearAnySaferoom(entity.GetOrigin(), distance);
 	}
 	isIntro = false
 	isFinale = false
+	saferoomPoints = null;
 	mapname = null
 	chapter = 0
+	Sphere = Utils.Sphere;
 };
 
 Utils.KillEntity <- function (ent)
 {
 	DoEntFire("!activator", "kill", "", 0, ent, null);
+}
+
+Utils.ArrayToTable <- function (arr)
+{
+	local tab = {};
+	foreach(str in arr) tab[str] <- 0;
+	return tab;
 }
 
 // TODO move/refactor...

@@ -12,8 +12,12 @@ CompLite = InitializeCompLite();
 if(CompLite.Globals.GetCurrentRound() > 0)
 {
 	Msg("CompLite Starting Round "+CompLite.Globals.GetCurrentRound()+" on ");
-	if(CompLite.Globals.MapInfo.isIntro) Msg("an intro map.\n");
+	local mi = CompLite.Globals.MapInfo;
+	if(mi.isIntro) Msg("an intro map.\n");
 	else Msg("a non-intro map.\n");
+
+	Msg("Found "+mi.saferoomPoints.len()+" saferoom points.\n");
+
 	return;
 }
 
@@ -113,7 +117,17 @@ g_GSC.AddListener(
 			"weapon_molotov_spawn",
 			"weapon_vomitjar_spawn",
 			"weapon_pipebomb_spawn"
-		]
+		],
+	// Remove these items from all saferooms
+		[
+			"weapon_adrenaline_spawn",
+			"weapon_pain_pills_spawn",
+			//"weapon_melee_spawn",
+			"weapon_molotov_spawn",
+			"weapon_pipe_bomb_spawn",
+			"weapon_vomitjar_spawn"
+		],
+		g_MapInfo
 	)
 );
 
