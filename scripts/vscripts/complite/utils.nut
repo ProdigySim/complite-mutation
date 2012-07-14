@@ -17,6 +17,16 @@ Utils <- {
 		Witch = 7
 		Tank = 8
 	}
+	SurvivorModels = {
+		coach = "models/survivors/survivor_coach.mdl"
+		ellis = "models/survivors/survivor_mechanic.mdl"
+		nick = "models/survivors/survivor_gambler.mdl"
+		rochelle = "models/survivors/survivor_producer.mdl"
+		louis = "models/survivors/survivor_manager.mdl"
+		bill = "models/survivors/survivor_namvet.mdl"
+		francis = "models/survivors/survivor_biker.mdl"
+		zoey = "models/survivors/survivor_teenangst.mdl"
+	}
 };
 IncludeScript("complite/globaltimers.nut", this);
 
@@ -212,7 +222,6 @@ class Utils.MapInfo {
 	isIntro = false
 	isFinale = false
 	hasScavengeEvent = false;
-
 	saferoomPoints = null;
 	mapname = null
 	chapter = 0
@@ -229,6 +238,17 @@ Utils.ArrayToTable <- function (arr)
 	local tab = {};
 	foreach(str in arr) tab[str] <- 0;
 	return tab;
+}
+
+Utils.IsEntityInMoveHeirarchy <- function (moveChildEnt, moveParentCandidate)
+{
+	local curEnt = moveChildEnt;
+	while(curEnt != null)
+	{
+		curEnt = curEnt.GetMoveParent();
+		if(curEnt == moveParentCandidate) return true;
+	}
+	return false;
 }
 
 // TODO move/refactor...
