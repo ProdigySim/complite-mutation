@@ -25,7 +25,7 @@ class SafeEntList extends Timers.TimerCallback
 			m_pTimer.AddTimer(1, this);
 		}
 		m_killList.push(ent);
-		DoEntFire("!activator", "kill", "", 0, ent, null);
+		DoEntFire("!self", "kill", "", 0, null, ent);
 	}
 	function IsEntityBeingKilled(ent)
 	{
