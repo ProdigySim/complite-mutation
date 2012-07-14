@@ -283,7 +283,7 @@ class Modules.ItemControl extends GameState.GameStateListener
 			for(local i = 0; i < cnt; i++)
 			{
 				entList[i].SetOrigin(firstItems[i].m_vecOrigin);
-				//entList[i].SetAngles(m_firstRoundEnts[i].m_vecAngles);
+				entList[i].SetForwardVector(firstItems[i].m_vecForward);
 			}
 			Msg("Restored "+cnt+" "+classname+", out of "+entList.len()+" on the map.\n");
 		}
@@ -322,10 +322,10 @@ class Modules.ItemControl extends GameState.GameStateListener
 		constructor(ent)
 		{
 			m_vecOrigin = ent.GetOrigin();
-			//m_vecAngles = ent.GetAngles();
+			m_vecForward = ent.GetForwardVector();
 		}
 		m_vecOrigin = null;
-		//m_vecAngles = null;
+		m_vecForward = null;
 	};
 };
 
@@ -343,8 +343,6 @@ class Modules.HRControl extends GameState.GameStateListener //, extends TimerCal
 	// Not actually inherited but it doesn't need to be.
 	function OnTimerElapsed()
 	{
-		m_bCheckInProgress = false;
-		
 		local ent = null;
 		local hrList = [];
 		while((ent = m_pEntities.FindByClassname(ent, "weapon_hunting_rifle")) != null)
