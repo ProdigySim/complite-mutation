@@ -183,13 +183,8 @@ class Modules.ItemControl extends GameState.GameStateListener
 		m_saferoomRemoveList = ArrayToTable(saferoomRemoveList);
 		m_pMapInfo = mapinfo;
 	}
-	function OnRoundStart(roundNumber)
+	function OnFirstRound()
 	{
-		Msg("ItemControl OnRoundStart()\n");
-		// This will run multiple times per round in certain cases...
-		// Notably, on natural map switch (transition) e.g. chapter 1 ends, start chapter 2.
-		// Just make sure you don't screw up anything...
-
 		local ent = m_entlist.First();
 		local classname = "";
 		local tItemEnts = {};
@@ -224,6 +219,7 @@ class Modules.ItemControl extends GameState.GameStateListener
 		// Remove all targeted saferoom items before doing roundstart removals
 		foreach(entity in saferoomEnts) m_entlist.KillEntity(entity);
 
+		m_firstRoundEnts = {}
 		foreach(classname,instances in tItemEnts)
 		{
 			local cnt = m_removalTable[classname].tointeger();
@@ -237,12 +233,16 @@ class Modules.ItemControl extends GameState.GameStateListener
 				local curIdx = 0;
 				local saved = 0;
 				local saveratio = (instances.len() / cnt) - 1;
+
+				m_firstRoundEnts[classname] <- [];
 				
 				// Reverse list (inplace) so we bias towards keeping later items
 				instances.reverse();
 				// Until we have saved enough items
 				while( saved < cnt )
 				{
+					// Track this entity's info for future rounds.
+					m_firstRoundEnts[classname].push(ItemInfo(instances[curIdx]));
 					// Remove this entity from the kill list
 					instances.remove(curIdx);
 					// Leave the next saveratio items in the kill list
@@ -259,16 +259,89 @@ class Modules.ItemControl extends GameState.GameStateListener
 			}
 		}
 	}
+	function OnLaterRounds()
+	{
+		local ent = m_entlist.First();
+		local classname = "";
+		local tItemEnts = {};
+
+		while(ent != null)
+		{
+			classname = ent.GetClassname()
+			if(classname in m_setCountList)
+			{
+				ent.__KeyValueFromInt("count", 1);
+			}
+			if(classname in m_removalTable)
+			{
+				tItemEnts[classname].push(ent);
+			}
+			ent=m_entlist.Next(ent);
+		}
+
+		foreach(classname,entList in tItemEnts)
+		{
+			local firstItems = m_firstRoundEnts[classname];
+			// count to keep alive
+			local cnt = firstItems.len();
+			if(cnt > entList.len())
+			{
+				Msg("Warning! Not enough "+classname+" spawned this round to match R1! ("+entList.len()+" < "+cnt+")\n");
+				cnt = entList.len();
+			}
+
+			for(local i = cnt; i < entList.len(); i++)
+			{
+				m_entlist.KillEntity(entList[i]);
+			}
+
+			for(local i = 0; i < cnt; i++)
+			{
+				entList[i].SetOrigin(m_firstRoundEnts[i].m_vecOrigin);
+				entList[i].SetAngles(m_firstRoundEnts[i].m_vecAngles);
+			}
+			ShowMessage(cnt+" "+classname+" can be found on the map!");
+		}
+	}
+	function OnRoundStart(roundNumber)
+	{
+		Msg("ItemControl OnRoundStart()\n");
+		// This will run multiple times per round in certain cases...
+		// Notably, on natural map switch (transition) e.g. chapter 1 ends, start chapter 2.
+		// Just make sure you don't screw up anything...
+		if(roundNumber == 1)
+		{
+			OnFirstRound();
+		}
+		else
+		{
+			OnLaterRounds();
+		}
+
+		
+	}
 	// pointer to global Entity List
 	m_entlist = null;
+	// point to global mapinfo
+	m_pMapInfo = null;
 	// Table of entity classname, limit value pairs
 	// We do a roundstart remove of these items to keep the removals from being too greedy. Health items are odd.
 	// Melee weapons work better here, too. Plus we get the chance to set their count!
 	m_removalTable = null;
 	m_setCountList = null;
 	m_saferoomRemoveList = null;
-	m_pMapInfo = null;
+
+	m_firstRoundEnts = null;
 	static ArrayToTable = Utils.ArrayToTable;
+	static ItemInfo = class	{
+		constructor(ent)
+		{
+			m_vecOrigin = ent.GetOrigin();
+			m_vecAngles = ent.GetAngles();
+		}
+		m_vecOrigin = null;
+		m_vecAngles = null;
+	};
 };
 
 class Modules.HRControl extends GameState.GameStateListener //, extends TimerCallback (no MI support)
