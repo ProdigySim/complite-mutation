@@ -252,6 +252,7 @@ class Modules.ItemControl extends GameState.GameStateListener
 				}
 			}
 			Msg("Killing "+instances.len()+" "+classname+" out of "+(instances.len()+cnt)+" on the map.\n");
+			ShowMessage(cnt+" "+classname+" can be found on the map!");
 			foreach(inst in instances)
 			{
 				m_entlist.KillEntity(inst);
