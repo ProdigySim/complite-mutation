@@ -69,7 +69,7 @@ g_GSC.AddListener(
 			weapon_propanetank = 0
 			weapon_oxygentank = 0
 			weapon_rifle_m60 = 0
-			weapon_first_aid_kit = -5
+			//weapon_first_aid_kit = -5
 			upgrade_item = 0
 		},
 		// Conversion Rules
