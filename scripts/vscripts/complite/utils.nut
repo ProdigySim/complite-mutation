@@ -159,7 +159,7 @@ class Utils.Sphere {
 	}
 	m_vecOrigin = null;
 	m_flRadius = null;
-}
+};
 
 class Utils.MapInfo {
 	function IdentifyMap(EntList)
