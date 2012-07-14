@@ -58,7 +58,6 @@ class Modules.SpitterControl extends GameState.GameStateListener
 		if(id == SIClass.Spitter && m_pDirector.IsTankInPlay())
 		{
 			// Convert spitter to least recently used SI class
-			Msg("Converting SI Class "+id+" to class "+min_idx+".\n");
 			newClass = SpawnLastUsed[0];
 		}
 		// Msg("Spawning SI Class "+newClass+".\n");
