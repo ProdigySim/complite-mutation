@@ -19,7 +19,7 @@ class Modules.MsgGSL extends GameState.GameStateListener
 	function OnSpawnPCZ(id) { Msg("MsgGSL: OnSpawnPCZ("+id+")\n"); }
 	function OnSpawnedPCZ(id) { Msg("MsgGSL: OnSpawnedPCZ("+id+")\n"); }
 	function OnGetDefaultItem(idx)
-	{ 
+	{
 		if(idx == 0) 
 		{
 			Msg("MsgGSL: OnGetDefaultItem(0) #"+m_defaultItemCnt+"\n");
@@ -223,36 +223,17 @@ class Modules.ItemControl extends GameState.GameStateListener
 		foreach(classname,instances in tItemEnts)
 		{
 			local cnt = m_removalTable[classname].tointeger();
-
-			// Less instances of this entity class than we want to remove to.
-			if(instances.len() <= cnt) continue;
-
+			local saved_ents = m_firstRoundEnts[classname] <- [];
 			// We need to choose certain items to save
-			if(cnt > 0)
+			while( instances.len() > 0 && saved_ents.len() < cnt )
 			{
-				local curIdx = 0;
-				local saved = 0;
-				local saveratio = (instances.len() / cnt) - 1;
-
-				m_firstRoundEnts[classname] <- [];
-				
-				// Reverse list (inplace) so we bias towards keeping later items
-				instances.reverse();
-				// Until we have saved enough items
-				while( saved < cnt )
-				{
-					// Track this entity's info for future rounds.
-					m_firstRoundEnts[classname].push(ItemInfo(instances[curIdx]));
-					// Remove this entity from the kill list
-					instances.remove(curIdx);
-					// Leave the next saveratio items in the kill list
-					curIdx += saveratio;
-					// Count that we have saved another entity
-					saved++;
-				}
+				local saveIdx = RandomInt(0,instances.len()-1);
+				// Track this entity's info for future rounds.
+				saved_ents.push(ItemInfo(instances[saveIdx]));
+				// Remove this entity from the kill list
+				instances.remove(saveIdx);
 			}
-			Msg("Killing "+instances.len()+" "+classname+" out of "+(instances.len()+cnt)+" on the map.\n");
-			ShowMessage(cnt+" "+classname+" can be found on the map!");
+			Msg("Killing "+instances.len()+" "+classname+", leaving "+saved_ents.len()+" on the map.\n");
 			foreach(inst in instances)
 			{
 				m_entlist.KillEntity(inst);
@@ -265,6 +246,10 @@ class Modules.ItemControl extends GameState.GameStateListener
 		local classname = "";
 		local tItemEnts = {};
 
+		foreach(key,val in m_removalTable)
+		{
+			tItemEnts[key] <- [];
+		}
 		while(ent != null)
 		{
 			classname = ent.GetClassname()
@@ -297,10 +282,10 @@ class Modules.ItemControl extends GameState.GameStateListener
 
 			for(local i = 0; i < cnt; i++)
 			{
-				entList[i].SetOrigin(m_firstRoundEnts[i].m_vecOrigin);
-				entList[i].SetAngles(m_firstRoundEnts[i].m_vecAngles);
+				entList[i].SetOrigin(firstItems[i].m_vecOrigin);
+				//entList[i].SetAngles(m_firstRoundEnts[i].m_vecAngles);
 			}
-			ShowMessage(cnt+" "+classname+" can be found on the map!");
+			Msg("Restored "+cnt+" "+classname+", out of "+entList.len()+" on the map.\n");
 		}
 	}
 	function OnRoundStart(roundNumber)
@@ -337,10 +322,10 @@ class Modules.ItemControl extends GameState.GameStateListener
 		constructor(ent)
 		{
 			m_vecOrigin = ent.GetOrigin();
-			m_vecAngles = ent.GetAngles();
+			//m_vecAngles = ent.GetAngles();
 		}
 		m_vecOrigin = null;
-		m_vecAngles = null;
+		//m_vecAngles = null;
 	};
 };
 
