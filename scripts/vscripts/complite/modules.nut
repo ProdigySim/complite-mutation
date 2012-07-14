@@ -336,58 +336,26 @@ class Modules.HRControl extends GameState.GameStateListener //, extends TimerCal
 		m_pEntities = entlist;
 		m_pGlobals = globals;
 	}
-	
-	function QueueCheck()
-	{
-		if(!m_bCheckInProgress)
-		{
-			// 2 seconds after any GDI or rstart
-			m_bCheckInProgress = true;
-
-			m_pGlobals.FrameTimer.AddTimer(2,this);
-		}
-		else
-		{
-			m_bCheckQueued = true;
-		}
-	}
-	function OnGetDefaultItem(idx)
-	{
-		local round = m_pGlobals.GetCurrentRound();
-		if(round > 0 && m_bPostRoundStart[round-1]) QueueCheck();
-	}
 	function OnRoundStart(roundNumber)
 	{
-		QueueCheck();
-		if(!m_bPostRoundStart[roundNumber-1])
-		{
-			m_pGlobals.MapInfo.IdentifyMap(m_pEntities);
-		}
-		m_bPostRoundStart[roundNumber-1] = true;
+		m_pGlobals.Timer.AddTimer(1.0,this);
 	}
-
 	// Not actually inherited but it doesn't need to be.
 	function OnTimerElapsed()
 	{
 		m_bCheckInProgress = false;
-		if(m_bCheckQueued)
-		{
-			m_bCheckQueued = false;
-			QueueCheck();
-		}
+		
 		local ent = null;
 		local hrList = [];
 		while((ent = m_pEntities.FindByClassname(ent, "weapon_hunting_rifle")) != null)
 		{
 			hrList.push(ent);
 		}
-		//Msg("Found "+hrList.len()+" HRs this check at "+Time()+"\n");
 		
 		if(!m_pGlobals.MapInfo.isIntro)
 		{
 			if(hrList.len() <= 1) return;
 			
-			// Save 1 HR at random
 			hrList.remove(RandomInt(0,hrList.len()-1));
 		}
 		
@@ -401,9 +369,6 @@ class Modules.HRControl extends GameState.GameStateListener //, extends TimerCal
 	}
 	m_pEntities = null;
 	m_pTimer = null;
-	m_bCheckInProgress = false;
-	m_bPostRoundStart = [false,false];
-	m_bCheckQueued = false;
 	m_pGlobals = null;
 };
 
