@@ -57,7 +57,6 @@ class Modules.SpitterControl extends GameState.GameStateListener
 	{
 		foreach(mdl in SIModels[id])
 		{
-			Msg("Searching for "+mdl+" to find replacement.\n");
 			if(m_pEntities.FindByModel(null, mdl) != null)
 			{
 				return true;
@@ -65,35 +64,18 @@ class Modules.SpitterControl extends GameState.GameStateListener
 		}
 		return false;
 	}
-	function DoAllSearches()
-	{
-		for(local i = SIClass.Smoker; i <= SIClass.Tank; i++)
-		{
-			foreach(mdl in SIModels[i])
-			{
-				Msg("Searching for "+mdl+"... ");
-				if(m_pEntities.FindByModel(null, mdl) == null)
-				{
-					Msg("Not ");
-				}
-				Msg("Found!\n");
-			}
-		}
-	}
 	function OnSpawnPCZ(id)
 	{
-		DoAllSearches();
 		// If a spitter is going to be spawned during tank,
 		if(id == SIClass.Spitter && m_pDirector.IsTankInPlay())
 		{
-			Msg("Replacing a spitter during tank...\n");
 			foreach(si in SpawnLastUsed)
 			{
+				// Note: Player keeps SI model until they receive a new spawn
+				// (while dead, they have the model of their last SI class)
 				if(!IsGivenSIClassSpawned(si)) return si;
-				Msg("Failed to spawn class "+id+" because one is in play!\n");
 			}
 			// default to hunter if we really can't pick another class...
-			Msg("Defaulting to hunter on spawn PCZ!\n");
 			return SIClass.Hunter;
 		}
 		// Msg("Spawning SI Class "+newClass+".\n");
@@ -101,9 +83,6 @@ class Modules.SpitterControl extends GameState.GameStateListener
 	}
 	function OnSpawnedPCZ(id)
 	{
-		Msg("OnSpawnedPCZ("+id+") Pre: [ ");
-		foreach(si in SpawnLastUsed) Msg(si+" ");
-		Msg("]\n");
 		// Mark that this SI to be spawned is most recently spawned now.
 		if(id != SIClass.Spitter && id <= SIClass.Charger && id >= SIClass.Smoker)
 		{
@@ -113,9 +92,6 @@ class Modules.SpitterControl extends GameState.GameStateListener
 			ArrayRemoveByValue(SpawnLastUsed, id);
 			SpawnLastUsed.push(id);
 		}
-		Msg("OnSpawnedPCZ("+id+") Post: [ ");
-		foreach(si in SpawnLastUsed) Msg(si+" ");
-		Msg("]\n");
 	}
 	// List of last spawned time for each SI class
 	SpawnLastUsed = null;
