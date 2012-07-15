@@ -97,6 +97,27 @@ g_GSC.AddListener(
 	)
 );
 
+// Enforce various item spawns to be single pickup.
+g_GSC.AddListener(
+	Modules.EntKVEnforcer(Entities,
+		// classnames
+		[
+			"weapon_adrenaline_spawn",
+			"weapon_pain_pills_spawn",
+			"weapon_melee_spawn",
+			"weapon_molotov_spawn",
+			"weapon_vomitjar_spawn",
+			"weapon_pipebomb_spawn"
+		],
+		// models
+		[],
+		// key to enforce
+		"count",
+		// value to set it to
+		1
+	)
+);
+
 g_GSC.AddListener(
 	Modules.ItemControl(Entities, 
 	// Roundstart Weapon removal list
@@ -111,15 +132,6 @@ g_GSC.AddListener(
 			weapon_pipe_bomb_spawn = 1
 			weapon_vomitjar_spawn = 1
 		},
-	// Set count to 1 on these
-		[
-			"weapon_adrenaline_spawn",
-			"weapon_pain_pills_spawn",
-			"weapon_melee_spawn",
-			"weapon_molotov_spawn",
-			"weapon_vomitjar_spawn",
-			"weapon_pipebomb_spawn"
-		],
 	// Remove these items from all saferooms
 		[
 			"weapon_adrenaline_spawn",

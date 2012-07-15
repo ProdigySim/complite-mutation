@@ -195,13 +195,81 @@ class Modules.BasicItemSystems extends GameState.GameStateListener
 	m_defaultItemList = null;
 };
 
+class Modules.EntKVEnforcer extends GameState.GameStateListener
+{
+	constructor(EntList, classes, models, key, value)
+	{
+		m_pEntities = EntList;
+		m_classes = classes;
+		m_models = models;
+		m_key = key;
+		switch(typeof value)
+		{
+			case "bool":
+				m_value = value.tointeger();
+				m_setFunc = ::CBaseEntity.__KeyValueFromInt;
+				break;
+			case "float":
+				m_value = value.tointeger();
+				m_setFunc = ::CBaseEntity.__KeyValueFromInt;
+				break;
+			case "integer":
+				m_value = value;
+				m_setFunc = ::CBaseEntity.__KeyValueFromInt;
+				break;
+			case "string":
+				m_value = value;
+				m_setFunc = ::CBaseEntity.__KeyValueFromString;
+				break;
+			case "instance":
+				if(value.getclass() == ::Vector)
+				{
+					m_value = value;
+					m_setFunc = ::CBaseEntity.__KeyValueFromVector;
+					break;
+				}
+			default:
+				m_value = null;
+				m_setFunc = null;
+				// Unsupported type!!!
+				throw "Unsupported type "+(typeof value)+" used with EntKVEnforcer!";
+		}
+	}
+	function OnRoundStart(roundNumber)
+	{
+		local ent = null;
+
+		while((ent = m_pEntities.Next(ent)) != null)
+		{
+			if(ent.GetClassname() in m_classes)
+			{
+				m_setFunc.call(ent, m_key, m_value);
+			}
+		}
+
+		foreach(mdl in m_models)
+		{
+			ent = null;
+			while((ent = m_pEntities.FindByModel(mdl)) != null)
+			{
+				m_setFunc.call(ent, m_key, m_value);
+			}
+		}
+	}
+	m_pEntities = null;
+	m_classes = null;
+	m_models = null;
+	m_key = null;
+	m_value = null;
+	m_setFunc = null;
+};
+
 class Modules.ItemControl extends GameState.GameStateListener
 {
-	constructor(entlist, removalTable, setCountList, saferoomRemoveList, mapinfo)
+	constructor(entlist, removalTable, saferoomRemoveList, mapinfo)
 	{
 		m_entlist = entlist;
 		m_removalTable = removalTable;
-		m_setCountList = ArrayToTable(setCountList);
 		m_saferoomRemoveList = ArrayToTable(saferoomRemoveList);
 		m_pMapInfo = mapinfo;
 	}
@@ -221,10 +289,6 @@ class Modules.ItemControl extends GameState.GameStateListener
 		while(ent != null)
 		{
 			classname = ent.GetClassname()
-			if(classname in m_setCountList)
-			{
-				ent.__KeyValueFromInt("count", 1);
-			}
 			if(classname in m_saferoomRemoveList && m_pMapInfo.IsEntityNearAnySaferoom(ent, 2000.0))
 			{
 				// Make a list of items which are in saferooms that need to be removed
@@ -275,10 +339,6 @@ class Modules.ItemControl extends GameState.GameStateListener
 		while(ent != null)
 		{
 			classname = ent.GetClassname()
-			if(classname in m_setCountList)
-			{
-				ent.__KeyValueFromInt("count", 1);
-			}
 			if(classname in m_removalTable)
 			{
 				tItemEnts[classname].push(ent);
@@ -335,7 +395,6 @@ class Modules.ItemControl extends GameState.GameStateListener
 	// We do a roundstart remove of these items to keep the removals from being too greedy. Health items are odd.
 	// Melee weapons work better here, too. Plus we get the chance to set their count!
 	m_removalTable = null;
-	m_setCountList = null;
 	m_saferoomRemoveList = null;
 
 	m_firstRoundEnts = null;
