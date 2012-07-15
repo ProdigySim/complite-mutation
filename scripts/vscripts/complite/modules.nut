@@ -399,16 +399,170 @@ class Modules.ItemControl extends GameState.GameStateListener
 
 	m_firstRoundEnts = null;
 	static ArrayToTable = Utils.ArrayToTable;
-	static ItemInfo = class	{
-		constructor(ent)
-		{
-			m_vecOrigin = ent.GetOrigin();
-			m_vecForward = ent.GetForwardVector();
-		}
-		m_vecOrigin = null;
-		m_vecForward = null;
-	};
+	static ItemInfo = Utils.ItemInfo;
 	static KillEntity = Utils.KillEntity;
+};
+
+class Modules.MeleeWeaponControl extends GameState.GameStateListener {
+	constructor(entlist, melee_limit)
+	{
+		m_pEntities = entlist;
+		m_maxSpawns = melee_limit;
+	}
+	function EntListToItemInfoList(entlist)
+	{
+		local infolist = [];
+		foreach (ent in entlist)
+		{
+			infolist.push(ItemInfo(ent));
+		}
+		return infolist;
+	}
+	function OnFirstRound()
+	{
+		m_firstRoundMelees = {};
+		local meleeEnts = {}
+		local totalCount = 0;
+
+		// Enumerate all melee weapon spawns by model
+		foreach(mdl in MeleeModels)
+		{
+			// prep table for later
+			m_firstRoundMelees[mdl] <- []
+
+			local spawnlist = []
+			local ent = null;
+			while((ent = m_pEntities.FindByModel(ent, mdl)) != null)
+			{
+				spawnlist.push(ent);
+				totalCount++;
+			}
+			meleeEnts[mdl] <- spawnlist;
+		}
+
+		if(totalCount < m_maxSpawns)
+		{
+			// There are less than m_maxSpawns melee weapons on the map,
+			// so we record them all and we're done.
+			foreach(mdl,spawnlist in meleeEnts)
+			{
+				m_firstRoundMelees[mdl] = EntListToItemInfoList(spawnlist);
+			}
+			Msg("Only "+totalCount+" melee weapons on the map to track.\n");
+		}
+		else
+		{
+			local savedCnt = 0;
+
+			// Save m_maxSpawns of them
+			while(savedCnt < m_maxSpawns)
+			{
+				local saveIdx = RandomInt(0,totalCount-1);
+
+				// Iterate through the list until we've hit saveIdx melees.
+				foreach(mdl, spawnlist in meleeEnts)
+				{
+					if(saveIdx < spawnlist.len())
+					{
+						// Save this item's spawn info.
+						m_firstRoundMelees[mdl].push(ItemInfo(spawnlist[saveIdx]);
+						spawnlist.remove(saveIdx);
+						totalCount--;
+						break;
+					}
+					saveIdx -= spawnlist.len();
+				}
+			}
+
+			// remove the remaining weapon spawns from the map.
+			foreach(mdl, spawnlist in meleeEnts)
+			{
+				foreach(melee_ent in spawnlist)
+				{
+					KillEntity(melee_ent);
+				}
+			}
+			Msg("Killing "+totalCount+" melee weapons and saving "+savedCnt+" out of "+totalCount+savedCnt+" on the map.\n");
+		}
+
+	}
+	function OnOtherRounds()
+	{
+		local meleeEnts = {}
+		local totalCount = 0;
+
+		// Enumerate all melee weapon spawns by model
+		foreach(mdl in MeleeModels)
+		{
+			local spawnlist = []
+			local ent = null;
+			while((ent = m_pEntities.FindByModel(ent, mdl)) != null)
+			{
+				spawnlist.push(ent);
+				totalCount++;
+			}
+			meleeEnts[mdl] <- spawnlist;
+		}
+
+		foreach(mdl,infolist in m_firstRoundMelees)
+		{
+			local restoreCnt = infolist.len();
+
+			// Make sure this model isn't unset in this round's ent table
+			if(!(mdl in meleeEnts))
+			{
+				Msg("Warning! No "+ mdl +" exist on R2 for restoring!\n");
+				continue;
+			}
+
+			local thisMdlEnts = meleeEnts[mdl];
+
+			// Check that this round's ent list is long enough to spawn last round's melees
+			if(thisMdlEnts.len() < infolist.len())
+			{
+				restoreCnt = thisMdlEnts.len();
+				Msg("Warning! Not as many of melee weapon ("+ mdl +") available on R2! ("+restoreCnt+" < "+infolist.len()+"\n");
+			}
+
+			Msg("Restoring "+restoreCnt+" "+mdl+" out of "+thisMdlEnts.len(); )
+
+			// Move restoreCnt melees of this model to their spots from R1.
+			while(restoreCnt-- > 0)
+			{
+				local ent = thisMdlEnts[0];
+				thisMdlEnts.remove(0);
+				ent.SetOrigin(infolist[restoreCnt].m_vecOrigin);
+				ent.SetForwardVector(infolist[restoreCnt].m_vecForward);
+			}
+		}
+
+		// Delete the remaining melees from this round.
+		foreach(mdl,spawnlist in meleeEnts)
+		{
+			foreach(ent in spawnlist)
+			{
+				KillEntity(ent);
+			}
+		}
+	}
+	function OnRoundStart(roundNumber)
+	{
+		if(roundNumber == 1)
+		{
+			OnFirstRound();
+		}
+		else
+		{
+			OnOtherRounds();
+		}
+	}
+	m_pEntities = null;
+	m_maxSpawns = null;
+
+	m_firstRoundMelees = null;
+
+	static MeleeModels = Utils.MeleeModels;
+	static ItemInfo = Utils.ItemInfo;
 };
 
 class Modules.HRControl extends GameState.GameStateListener //, extends TimerCallback (no MI support)

@@ -118,14 +118,13 @@ g_GSC.AddListener(
 	)
 );
 
+// Entity tracking/removal/limiting
 g_GSC.AddListener(
 	Modules.ItemControl(Entities, 
-	// Roundstart Weapon removal list
-	// Limit to value
+	// Limit to value by classname
 		{
 			weapon_adrenaline_spawn = 1
 			weapon_pain_pills_spawn = 4
-			weapon_melee_spawn = 4
 			witch = 1
 			func_playerinfected_clip = 0
 			weapon_molotov_spawn = 1
@@ -145,6 +144,8 @@ g_GSC.AddListener(
 	)
 );
 
+// Limit melee weapons to 4
+g_GSC.AddListener(Modules.MeleeWeaponControl(Entities, 4));
 
 
 Msg("GSC/M/L Script run.\n");

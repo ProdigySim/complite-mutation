@@ -38,6 +38,21 @@ Utils <- {
 		francis = "models/survivors/survivor_biker.mdl"
 		zoey = "models/survivors/survivor_teenangst.mdl"
 	}
+	MeleeModels = [
+		"/weapons/melee/w_bat.mdl",
+		"/weapons/melee/w_chainsaw.mdl"
+		"/weapons/melee/w_cricket_bat.mdl",
+		"/weapons/melee/w_crowbar.mdl",
+		"/weapons/melee/w_didgeridoo.mdl",
+		"/weapons/melee/w_electric_guitar.mdl",
+		"/weapons/melee/w_fireaxe.mdl",
+		"/weapons/melee/w_frying_pan.mdl",
+		"/weapons/melee/w_golfclub.mdl",
+		"/weapons/melee/w_katana.mdl",
+		"/weapons/melee/w_machete.mdl",
+		"/weapons/melee/w_riotshield.mdl",
+		"/weapons/melee/w_tonfa.mdl"
+	]
 };
 IncludeScript("complite/globaltimers.nut", this);
 
@@ -238,6 +253,17 @@ class Utils.MapInfo {
 	chapter = 0
 	Sphere = Utils.Sphere;
 };
+
+class Utils.ItemInfo {
+	constructor(ent)
+	{
+		m_vecOrigin = ent.GetOrigin();
+		m_vecForward = ent.GetForwardVector();
+	}
+	m_vecOrigin = null;
+	m_vecForward = null;
+};
+
 
 Utils.KillEntity <- function (ent)
 {
