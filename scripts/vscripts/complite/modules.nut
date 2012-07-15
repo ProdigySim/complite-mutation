@@ -207,25 +207,25 @@ class Modules.EntKVEnforcer extends GameState.GameStateListener
 		{
 			case "bool":
 				m_value = value.tointeger();
-				m_setFunc = ::CBaseEntity.__KeyValueFromInt;
+				m_setFunc = "__KeyValueFromInt";
 				break;
 			case "float":
 				m_value = value.tointeger();
-				m_setFunc = ::CBaseEntity.__KeyValueFromInt;
+				m_setFunc = "__KeyValueFromInt";
 				break;
 			case "integer":
 				m_value = value;
-				m_setFunc = ::CBaseEntity.__KeyValueFromInt;
+				m_setFunc = "__KeyValueFromInt";
 				break;
 			case "string":
 				m_value = value;
-				m_setFunc = ::CBaseEntity.__KeyValueFromString;
+				m_setFunc = "__KeyValueFromString";
 				break;
 			case "instance":
 				if(value.getclass() == ::Vector)
 				{
 					m_value = value;
-					m_setFunc = ::CBaseEntity.__KeyValueFromVector;
+					m_setFunc = "__KeyValueFromVector";
 					break;
 				}
 			default:
@@ -243,7 +243,7 @@ class Modules.EntKVEnforcer extends GameState.GameStateListener
 		{
 			if(ent.GetClassname() in m_classes)
 			{
-				m_setFunc.call(ent, m_key, m_value);
+				ent[m_setFuncName].call(ent, m_key, m_value);
 			}
 		}
 
@@ -252,7 +252,7 @@ class Modules.EntKVEnforcer extends GameState.GameStateListener
 			ent = null;
 			while((ent = m_pEntities.FindByModel(mdl)) != null)
 			{
-				m_setFunc.call(ent, m_key, m_value);
+				ent[m_setFuncName].call(ent, m_key, m_value);
 			}
 		}
 	}
@@ -289,7 +289,7 @@ class Modules.ItemControl extends GameState.GameStateListener
 		while(ent != null)
 		{
 			classname = ent.GetClassname()
-			if(classname in m_saferoomRemoveList && m_pMapInfo.IsEntityNearAnySaferoom(ent, 2000.0))
+			if(classname in m_saferoomRemoveList && m_pMapInfo.IsEntityNearAnySaferoom(ent, 1600.0))
 			{
 				// Make a list of items which are in saferooms that need to be removed
 				// and don't track these entities for other removal.
@@ -465,8 +465,9 @@ class Modules.MeleeWeaponControl extends GameState.GameStateListener {
 					if(saveIdx < spawnlist.len())
 					{
 						// Save this item's spawn info.
-						m_firstRoundMelees[mdl].push(ItemInfo(spawnlist[saveIdx]);
+						m_firstRoundMelees[mdl].push(ItemInfo(spawnlist[saveIdx]));
 						spawnlist.remove(saveIdx);
+						savedCnt++;
 						totalCount--;
 						break;
 					}
@@ -482,7 +483,7 @@ class Modules.MeleeWeaponControl extends GameState.GameStateListener {
 					KillEntity(melee_ent);
 				}
 			}
-			Msg("Killing "+totalCount+" melee weapons and saving "+savedCnt+" out of "+totalCount+savedCnt+" on the map.\n");
+			Msg("Killing "+totalCount+" melee weapons and saving "+savedCnt+" out of "+(totalCount+savedCnt)+" on the map.\n");
 		}
 
 	}
@@ -518,21 +519,21 @@ class Modules.MeleeWeaponControl extends GameState.GameStateListener {
 			local thisMdlEnts = meleeEnts[mdl];
 
 			// Check that this round's ent list is long enough to spawn last round's melees
-			if(thisMdlEnts.len() < infolist.len())
+			if(thisMdlEnts.len() < restoreCnt)
 			{
 				restoreCnt = thisMdlEnts.len();
 				Msg("Warning! Not as many of melee weapon ("+ mdl +") available on R2! ("+restoreCnt+" < "+infolist.len()+"\n");
 			}
 
-			Msg("Restoring "+restoreCnt+" "+mdl+" out of "+thisMdlEnts.len(); )
+			Msg("Restoring "+restoreCnt+" "+mdl+" out of "+thisMdlEnts.len()+"\n");
 
 			// Move restoreCnt melees of this model to their spots from R1.
-			while(restoreCnt-- > 0)
+			for(local i = 0; i < restoreCnt; i++)
 			{
 				local ent = thisMdlEnts[0];
 				thisMdlEnts.remove(0);
-				ent.SetOrigin(infolist[restoreCnt].m_vecOrigin);
-				ent.SetForwardVector(infolist[restoreCnt].m_vecForward);
+				ent.SetOrigin(infolist[i].m_vecOrigin);
+				ent.SetForwardVector(infolist[i].m_vecForward);
 			}
 		}
 
@@ -563,6 +564,7 @@ class Modules.MeleeWeaponControl extends GameState.GameStateListener {
 
 	static MeleeModels = Utils.MeleeModels;
 	static ItemInfo = Utils.ItemInfo;
+	static KillEntity = Utils.KillEntity;
 };
 
 class Modules.HRControl extends GameState.GameStateListener //, extends TimerCallback (no MI support)

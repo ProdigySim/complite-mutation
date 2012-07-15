@@ -39,19 +39,19 @@ Utils <- {
 		zoey = "models/survivors/survivor_teenangst.mdl"
 	}
 	MeleeModels = [
-		"/weapons/melee/w_bat.mdl",
-		"/weapons/melee/w_chainsaw.mdl"
-		"/weapons/melee/w_cricket_bat.mdl",
-		"/weapons/melee/w_crowbar.mdl",
-		"/weapons/melee/w_didgeridoo.mdl",
-		"/weapons/melee/w_electric_guitar.mdl",
-		"/weapons/melee/w_fireaxe.mdl",
-		"/weapons/melee/w_frying_pan.mdl",
-		"/weapons/melee/w_golfclub.mdl",
-		"/weapons/melee/w_katana.mdl",
-		"/weapons/melee/w_machete.mdl",
-		"/weapons/melee/w_riotshield.mdl",
-		"/weapons/melee/w_tonfa.mdl"
+		"models/weapons/melee/w_bat.mdl",
+		"models/weapons/melee/w_chainsaw.mdl"
+		"models/weapons/melee/w_cricket_bat.mdl",
+		"models/weapons/melee/w_crowbar.mdl",
+		"models/weapons/melee/w_didgeridoo.mdl",
+		"models/weapons/melee/w_electric_guitar.mdl",
+		"models/weapons/melee/w_fireaxe.mdl",
+		"models/weapons/melee/w_frying_pan.mdl",
+		"models/weapons/melee/w_golfclub.mdl",
+		"models/weapons/melee/w_katana.mdl",
+		"models/weapons/melee/w_machete.mdl",
+		"models/weapons/melee/w_riotshield.mdl",
+		"models/weapons/melee/w_tonfa.mdl"
 	]
 };
 IncludeScript("complite/globaltimers.nut", this);
