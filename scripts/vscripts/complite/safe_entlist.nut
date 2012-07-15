@@ -37,24 +37,13 @@ class SafeEntList extends Timers.TimerCallback
 
 	function OnTimerElapsed()
 	{
-		local i = 0;
-		while(i < m_killList.len())
-		{
-			if(!m_killList[i].IsValid()) 
-			{
-				m_killList.remove(i);
-			}
-			else 
-			{
-				Msg("Ent still alive!\n");
-				i++;
-			}
-		}
-		if(m_killList.len() > 0)
-		{
-			// Recheck to see if ent is dead by next frame.
-			m_pTimer.AddTimer(1, this);
-		}
+		// Pretty much any types of checking to see what's "still alive" 
+		// here will fail... Storing weakrefs causes them to be seen as "dead"
+		// as soon as all scripting references to the entity are gone.
+		// Storing strong refs causes them to appear to be "alive" even if the entity
+		// is dead.
+		// Let's just hope this doesn't screw us over...
+		m_killList.clear();
 	}
 
 	function First()
@@ -149,6 +138,6 @@ class SafeEntList extends Timers.TimerCallback
 	}
 	
 	m_pEntities = null;
-	m_killList = [];
+	m_killList = null;
 	m_pTimer = null;
 }

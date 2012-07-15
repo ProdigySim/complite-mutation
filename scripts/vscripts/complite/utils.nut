@@ -230,7 +230,7 @@ class Utils.MapInfo {
 
 Utils.KillEntity <- function (ent)
 {
-	::CompLite.Globals.SafeEntList.KillEntity(ent);
+	DoEntFire("!self", "kill", "", 0, null, ent);
 }
 
 Utils.ArrayToTable <- function (arr)

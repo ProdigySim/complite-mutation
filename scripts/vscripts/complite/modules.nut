@@ -217,7 +217,7 @@ class Modules.ItemControl extends GameState.GameStateListener
 		}
 		
 		// Remove all targeted saferoom items before doing roundstart removals
-		foreach(entity in saferoomEnts) m_entlist.KillEntity(entity);
+		foreach(entity in saferoomEnts) KillEntity(entity);
 
 		m_firstRoundEnts = {}
 		foreach(classname,instances in tItemEnts)
@@ -236,7 +236,7 @@ class Modules.ItemControl extends GameState.GameStateListener
 			Msg("Killing "+instances.len()+" "+classname+", leaving "+saved_ents.len()+" on the map.\n");
 			foreach(inst in instances)
 			{
-				m_entlist.KillEntity(inst);
+				KillEntity(inst);
 			}
 		}
 	}
@@ -277,7 +277,7 @@ class Modules.ItemControl extends GameState.GameStateListener
 
 			for(local i = cnt; i < entList.len(); i++)
 			{
-				m_entlist.KillEntity(entList[i]);
+				KillEntity(entList[i]);
 			}
 
 			for(local i = 0; i < cnt; i++)
@@ -327,46 +327,59 @@ class Modules.ItemControl extends GameState.GameStateListener
 		m_vecOrigin = null;
 		m_vecForward = null;
 	};
+	static KillEntity = Utils.KillEntity;
 };
 
 class Modules.HRControl extends GameState.GameStateListener //, extends TimerCallback (no MI support)
 {
-	constructor(entlist, globals)
+	constructor(entlist, globals, director)
 	{
 		m_pEntities = entlist;
 		m_pGlobals = globals;
+		m_pDirector = director;
+	}
+	function QueueCheck(time)
+	{
+		if(!m_bChecking)
+		{
+			m_pGlobals.Timer.AddTimer(time, this);
+			m_bChecking = true;
+		}
 	}
 	function OnRoundStart(roundNumber)
 	{
-		m_pGlobals.Timer.AddTimer(1.0,this);
+		QueueCheck(1.0);
 	}
-	// Not actually inherited but it doesn't need to be.
 	function OnTimerElapsed()
 	{
+		m_bChecking=false;
+		if(!m_pDirector.HasAnySurvivorLeftSafeArea()) QueueCheck(5.0);
+		
 		local ent = null;
 		local hrList = [];
 		while((ent = m_pEntities.FindByClassname(ent, "weapon_hunting_rifle")) != null)
 		{
 			hrList.push(ent);
 		}
-		
+
+		if(hrList.len() <= 1) return;
+
 		if(!m_pGlobals.MapInfo.isIntro)
 		{
-			if(hrList.len() <= 1) return;
-			
 			hrList.remove(RandomInt(0,hrList.len()-1));
 		}
-		
-		//Msg("Still have "+hrList.len()+"!\n");
 
 		// Delete the rest
 		foreach(hr in hrList)
 		{
-			m_pEntities.KillEntity(hr);
+			KillEntity(hr);
 		}
 	}
 	m_pEntities = null;
 	m_pTimer = null;
 	m_pGlobals = null;
+	m_pDirector = null;
+	m_bChecking = false;
+	static KillEntity = Utils.KillEntity;
 };
 
