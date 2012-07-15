@@ -89,7 +89,7 @@ class Modules.SpitterControl extends GameState.GameStateListener
 			Msg("Replacing a spitter during tank...\n");
 			foreach(si in SpawnLastUsed)
 			{
-				if(!IsGivenSIClassSpawned(id)) return si;
+				if(!IsGivenSIClassSpawned(si)) return si;
 				Msg("Failed to spawn class "+id+" because one is in play!\n");
 			}
 			// default to hunter if we really can't pick another class...
