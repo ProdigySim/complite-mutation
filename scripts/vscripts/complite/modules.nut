@@ -42,7 +42,7 @@ class Modules.SpitterControl extends GameState.GameStateListener
 		m_pSpitterLimit = KeyReset(director_opts, "SpitterLimit");
 		m_pEntities = entlist;
 		// Initialize to default order...
-		SpawnLastUsed = [1, 2, 3, 4, 5, 6];
+		SpawnLastUsed = [1, 2, 3, 5, 6];
 	}
 	function OnTankEntersPlay()
 	{
