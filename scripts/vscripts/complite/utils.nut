@@ -17,6 +17,17 @@ Utils <- {
 		Witch = 7
 		Tank = 8
 	}
+	SIModels = [
+		"", // null entry
+		["models/infected/smoker.mdl"],
+		["models/infected/boomer.mdl", "models/infected/boomette.mdl"],
+		["models/infected/hunter.mdl"],
+		["models/infected/spitter.mdl"],
+		["models/infected/jockey.mdl"],
+		["models/infected/charger.mdl"],
+		["models/infected/witch.mdl", "models/infected/witch_bride.mdl"],
+		["models/infected/hulk.mdl", "models/infected/hulk_dlc3.mdl"]
+	]
 	SurvivorModels = {
 		coach = "models/survivors/survivor_coach.mdl"
 		ellis = "models/survivors/survivor_mechanic.mdl"
@@ -238,6 +249,18 @@ Utils.ArrayToTable <- function (arr)
 	local tab = {};
 	foreach(str in arr) tab[str] <- 0;
 	return tab;
+}
+
+Utils.ArrayRemoveByValue <- function (arr, value)
+{
+	foreach(id,val in arr)
+	{
+		if(val == value)
+		{
+			arr.remove(id);
+			break;
+		}
+	}
 }
 
 Utils.IsEntityInMoveHeirarchy <- function (moveChildEnt, moveParentCandidate)

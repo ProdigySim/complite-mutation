@@ -36,11 +36,13 @@ class Modules.MsgGSL extends GameState.GameStateListener
 
 class Modules.SpitterControl extends GameState.GameStateListener
 {
-	constructor(director, director_opts)
+	constructor(director, director_opts, entlist)
 	{
 		m_pDirector = director;
 		m_pSpitterLimit = KeyReset(director_opts, "SpitterLimit");
-		SpawnLastUsed = array(5,0);
+		m_pEntities = entlist;
+		// Initialize to default order...
+		SpawnLastUsed = [1, 2, 3, 4, 5, 6];
 	}
 	function OnTankEntersPlay()
 	{
@@ -50,37 +52,64 @@ class Modules.SpitterControl extends GameState.GameStateListener
 	{
 		m_pSpitterLimit.unset();
 	}
+	// Check if there is an instance of this SI on the map
+	function IsGivenSIClassSpawned(id)
+	{
+		foreach(mdl in SIModels[id])
+		{
+			if(m_pEntities.FindByModel(null, mdl) != null)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 	function OnSpawnPCZ(id)
 	{
-		local newClass = id;
-
 		// If a spitter is going to be spawned during tank,
 		if(id == SIClass.Spitter && m_pDirector.IsTankInPlay())
 		{
-			// Convert spitter to least recently used SI class
-			newClass = SpawnLastUsed[0];
+			Msg("Replacing a spitter during tank...\n");
+			foreach(si in SpawnLastUsed)
+			{
+				if(!IsGivenSIClassSpawned(id)) return si;
+				Msg("Failed to spawn class "+id+" because one is in play!\n");
+			}
+			// default to hunter if we really can't pick another class...
+			Msg("Defaulting to hunter on spawn PCZ!\n");
+			return SIClass.Hunter;
 		}
 		// Msg("Spawning SI Class "+newClass+".\n");
-		return newClass;
+		return id;
 	}
 	function OnSpawnedPCZ(id)
 	{
+		Msg("OnSpawnedPCZ("+id+") Pre: [ ");
+		foreach(si in SpawnLastUsed) Msg(si+" ");
+		Msg("]\n");
 		// Mark that this SI to be spawned is most recently spawned now.
-		if(id != SIClass.Spitter)
+		if(id != SIClass.Spitter && id <= SIClass.Charger && id >= SIClass.Smoker)
 		{
 			// Low index = least recent
 			// High index = most recent
+			// Remove the other instance of this class in our array
+			ArrayRemoveByValue(SpawnLastUsed, id);
 			SpawnLastUsed.push(id);
-			SpawnLastUsed.remove(0);
 		}
+		Msg("OnSpawnedPCZ("+id+") Post: [ ");
+		foreach(si in SpawnLastUsed) Msg(si+" ");
+		Msg("]\n");
 	}
 	// List of last spawned time for each SI class
 	SpawnLastUsed = null;
 	// reference to director options
 	m_pSpitterLimit = null;
 	m_pDirector = null;
+	m_pEntities = null;
 	static KeyReset = Utils.KeyReset;
 	static SIClass = Utils.SIClass;
+	static SIModels = Utils.SIModels;
+	static ArrayRemoveByValue = Utils.ArrayRemoveByValue;
 };
 
 

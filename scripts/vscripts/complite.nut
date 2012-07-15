@@ -41,7 +41,7 @@ local Modules = CompLite.Modules;
 // Uncomment to add a debug event listener
 //g_GSC.AddListener(Modules.MsgGSL());
 
-g_GSC.AddListener(Modules.SpitterControl(Director, DirectorOptions));
+g_GSC.AddListener(Modules.SpitterControl(Director, DirectorOptions, Entities));
 g_GSC.AddListener(Modules.MobControl(g_MobResetti));
 
 
