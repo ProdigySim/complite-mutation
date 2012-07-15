@@ -57,6 +57,7 @@ class Modules.SpitterControl extends GameState.GameStateListener
 	{
 		foreach(mdl in SIModels[id])
 		{
+			Msg("Searching for "+mdl+" to find replacement.\n");
 			if(m_pEntities.FindByModel(null, mdl) != null)
 			{
 				return true;
@@ -64,8 +65,24 @@ class Modules.SpitterControl extends GameState.GameStateListener
 		}
 		return false;
 	}
+	function DoAllSearches()
+	{
+		for(local i = SIClass.Smoker; i <= SIClass.Tank; i++)
+		{
+			foreach(mdl in SIModels[i])
+			{
+				Msg("Searching for "+mdl+"... ");
+				if(m_pEntities.FindByModel(null, mdl) == null)
+				{
+					Msg("Not ");
+				}
+				Msg("Found!\n");
+			}
+		}
+	}
 	function OnSpawnPCZ(id)
 	{
+		DoAllSearches();
 		// If a spitter is going to be spawned during tank,
 		if(id == SIClass.Spitter && m_pDirector.IsTankInPlay())
 		{
