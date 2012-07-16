@@ -153,5 +153,8 @@ g_GSC.AddListener(
 // Limit melee weapons to 4
 g_GSC.AddListener(Modules.MeleeWeaponControl(Entities, 4));
 
+// Remove all gascans on non-scavenge maps
+g_GSC.AddListener(Modules.GasCanControl(Entities, g_MapInfo));
+
 
 Msg("GSC/M/L Script run.\n");

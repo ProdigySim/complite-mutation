@@ -694,3 +694,31 @@ class Modules.HRControl extends GameState.GameStateListener //, extends TimerCal
 	static KillEntity = Utils.KillEntity;
 };
 
+class Modules.GasCanControl extends GameState.GameStateListener {
+	constructor(entList, mapinfo)
+	{
+		m_pEntities = entList;
+		m_pMapInfo = mapinfo;
+	}
+	function OnRoundStart(roundNumber)
+	{
+		// Don't demolish gascans if the map has a scavenge event!
+		// Unless it's c1m2 because it uses cola yo.
+		if(m_pMapInfo.hasScavengeEvent && m_pMapInfo.mapname != "c1m2_streets") return;
+
+		local ent = null;
+		local list = [];
+		while((ent = m_pEntities.FindByModel(ent, "models/props_junk/gascan001a.mdl").weakref()) != null)
+		{
+			list.push(ent.weakref());
+		}
+		Msg("Killing "+list.len()+" gas cans from the map.\n");
+		foreach(can in list)
+		{
+			KillEntity(can);
+		}
+	}
+	m_pEntities = null;
+	m_pMapInfo = null;
+	static KillEntity = Utils.KillEntity;
+}
