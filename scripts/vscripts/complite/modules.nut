@@ -293,11 +293,11 @@ class Modules.ItemControl extends GameState.GameStateListener
 			{
 				// Make a list of items which are in saferooms that need to be removed
 				// and don't track these entities for other removal.
-				saferoomEnts.push(ent);
+				saferoomEnts.push(ent.weakref());
 			}
 			else if(classname in m_removalTable)
 			{
-				tItemEnts[classname].push(ent);
+				tItemEnts[classname].push(ent.weakref());
 			}
 			ent=m_entlist.Next(ent);
 		}
@@ -341,7 +341,7 @@ class Modules.ItemControl extends GameState.GameStateListener
 			classname = ent.GetClassname()
 			if(classname in m_removalTable)
 			{
-				tItemEnts[classname].push(ent);
+				tItemEnts[classname].push(ent.weakref());
 			}
 			ent=m_entlist.Next(ent);
 		}
@@ -434,7 +434,7 @@ class Modules.MeleeWeaponControl extends GameState.GameStateListener {
 			local ent = null;
 			while((ent = m_pEntities.FindByModel(ent, mdl)) != null)
 			{
-				spawnlist.push(ent);
+				spawnlist.push(ent.weakref());
 				totalCount++;
 			}
 			meleeEnts[mdl] <- spawnlist;
@@ -499,7 +499,7 @@ class Modules.MeleeWeaponControl extends GameState.GameStateListener {
 			local ent = null;
 			while((ent = m_pEntities.FindByModel(ent, mdl)) != null)
 			{
-				spawnlist.push(ent);
+				spawnlist.push(ent.weakref());
 				totalCount++;
 			}
 			meleeEnts[mdl] <- spawnlist;
@@ -596,7 +596,7 @@ class Modules.HRControl extends GameState.GameStateListener //, extends TimerCal
 		local hrList = [];
 		while((ent = m_pEntities.FindByClassname(ent, "weapon_hunting_rifle")) != null)
 		{
-			hrList.push(ent);
+			hrList.push(ent.weakref());
 		}
 
 		if(hrList.len() <= 1) return;
