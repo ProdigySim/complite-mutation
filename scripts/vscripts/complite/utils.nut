@@ -254,16 +254,32 @@ class Utils.MapInfo {
 	Sphere = Utils.Sphere;
 };
 
+class Utils.VectorClone {
+	constructor(vec)
+	{
+		x=vec.x;
+		y=vec.y;
+		z=vec.z;
+	}
+	function ToVector()
+	{
+		return Vector(x,y,z);
+	}
+	x=0.0
+	y=0.0
+	z=0.0
+};
+
 class Utils.ItemInfo {
 	constructor(ent)
 	{
-		m_vecOrigin = ent.GetOrigin();
+		m_vecOrigin = VectorClone(ent.GetOrigin());
 		//m_vecForward = ent.GetForwardVector();
 	}
 	m_vecOrigin = null;
 	//m_vecForward = null;
+	static VectorClone = Utils.VectorClone;
 };
-
 
 Utils.KillEntity <- function (ent)
 {
