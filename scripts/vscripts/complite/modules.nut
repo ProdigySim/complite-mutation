@@ -599,10 +599,9 @@ class Modules.HRControl extends GameState.GameStateListener //, extends TimerCal
 			hrList.push(ent.weakref());
 		}
 
-		if(hrList.len() <= 1) return;
-
 		if(!m_pGlobals.MapInfo.isIntro)
 		{
+			if(hrList.len() <= 1) return;
 			hrList.remove(RandomInt(0,hrList.len()-1));
 		}
 
