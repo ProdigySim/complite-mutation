@@ -365,7 +365,7 @@ class Modules.ItemControl extends GameState.GameStateListener
 			for(local i = 0; i < cnt; i++)
 			{
 				entList[i].SetOrigin(firstItems[i].m_vecOrigin);
-				entList[i].SetForwardVector(firstItems[i].m_vecForward);
+				//entList[i].SetForwardVector(firstItems[i].m_vecForward);
 			}
 			Msg("Restored "+cnt+" "+classname+", out of "+entList.len()+" on the map.\n");
 		}
@@ -533,7 +533,7 @@ class Modules.MeleeWeaponControl extends GameState.GameStateListener {
 				local ent = thisMdlEnts[0];
 				thisMdlEnts.remove(0);
 				ent.SetOrigin(infolist[i].m_vecOrigin);
-				ent.SetForwardVector(infolist[i].m_vecForward);
+				//ent.SetForwardVector(infolist[i].m_vecForward);
 			}
 		}
 

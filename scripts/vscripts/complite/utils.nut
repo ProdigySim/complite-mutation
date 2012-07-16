@@ -258,10 +258,10 @@ class Utils.ItemInfo {
 	constructor(ent)
 	{
 		m_vecOrigin = ent.GetOrigin();
-		m_vecForward = ent.GetForwardVector();
+		//m_vecForward = ent.GetForwardVector();
 	}
 	m_vecOrigin = null;
-	m_vecForward = null;
+	//m_vecForward = null;
 };
 
 
