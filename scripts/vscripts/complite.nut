@@ -131,6 +131,12 @@ g_GSC.AddListener(
 			weapon_pipe_bomb_spawn = 1
 			weapon_vomitjar_spawn = 1
 		},
+	// Limit to value by model name
+		{
+			["models/props_junk/propanecanister001a.mdl"] = 0,
+			["models/props_equipment/oxygentank01.mdl"] = 0,
+			["models/props_junk/explosive_box001.mdl"] = 1
+		},
 	// Remove these items from all saferooms
 		[
 			"weapon_adrenaline_spawn",

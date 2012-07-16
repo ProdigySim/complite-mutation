@@ -266,10 +266,11 @@ class Modules.EntKVEnforcer extends GameState.GameStateListener
 
 class Modules.ItemControl extends GameState.GameStateListener
 {
-	constructor(entlist, removalTable, saferoomRemoveList, mapinfo)
+	constructor(entlist, removalTable, modelRemovalTable, saferoomRemoveList, mapinfo)
 	{
 		m_entlist = entlist;
 		m_removalTable = removalTable;
+		m_modelRemovalTable = modelRemovalTable;
 		m_saferoomRemoveList = ArrayToTable(saferoomRemoveList);
 		m_pMapInfo = mapinfo;
 	}
@@ -301,9 +302,23 @@ class Modules.ItemControl extends GameState.GameStateListener
 			}
 			ent=m_entlist.Next(ent);
 		}
+
+		local tModelEnts = {};
+
+		foreach(mdl,limit in m_modelRemovalTable)
+		{
+			local thisMdlEnts = tModelEnts[mdl] <- [];
+			ent = null;
+			while((ent = m_entlist.FindByModel(ent, mdl)) != null)
+			{
+				// Only use this entity if it's not one of the saferoom entities we're going to remove.
+				thisMdlEnts.push(ent.weakref());
+			}
+		}
 		
 		// Remove all targeted saferoom items before doing roundstart removals
 		foreach(entity in saferoomEnts) KillEntity(entity);
+		local KilledEntList = saferoomEnts;
 
 		m_firstRoundEnts = {}
 		foreach(classname,instances in tItemEnts)
@@ -320,6 +335,29 @@ class Modules.ItemControl extends GameState.GameStateListener
 				instances.remove(saveIdx);
 			}
 			Msg("Killing "+instances.len()+" "+classname+", leaving "+saved_ents.len()+" on the map.\n");
+			foreach(inst in instances)
+			{
+				KillEntity(inst);
+				KilledEntList.push(inst.weakref());
+			}
+		}
+
+		m_firstRoundModelEnts = {}
+		foreach(model,instances in tModelEnts)
+		{
+			// Don't use killed ents!
+			foreach(deadEnt in KilledEntList) ArrayRemoveByValue(instances, deadEnt);
+			local limit = m_modelRemovalTable[model].tointeger();
+			local saved_ents = m_firstRoundModelEnts[model] <- [];
+			while( instances.len() > 0 && saved_ents.len() < limit )
+			{
+				local saveIdx = RandomInt(0,instances.len()-1);
+				// Track this entity's info for future rounds.
+				saved_ents.push(ItemInfo(instances[saveIdx]));
+				// Remove this entity from the kill list
+				instances.remove(saveIdx);
+			}
+			Msg("Killing "+instances.len()+" "+model+", leaving "+saved_ents.len()+" on the map.\n");
 			foreach(inst in instances)
 			{
 				KillEntity(inst);
@@ -346,6 +384,18 @@ class Modules.ItemControl extends GameState.GameStateListener
 			ent=m_entlist.Next(ent);
 		}
 
+		local tModelEnts = {};
+		foreach(mdl,limit in m_modelRemovalTable)
+		{
+			local thisMdlEnts = tModelEnts[mdl] <- [];
+			ent = null;
+			while((ent = m_entlist.FindByModel(ent, mdl)) != null)
+			{
+				// Only use this entity if it's not one of the saferoom entities we're going to remove.
+				thisMdlEnts.push(ent.weakref());
+			}
+		}
+
 		foreach(classname,entList in tItemEnts)
 		{
 			local firstItems = m_firstRoundEnts[classname];
@@ -368,6 +418,30 @@ class Modules.ItemControl extends GameState.GameStateListener
 				//entList[i].SetForwardVector(firstItems[i].m_vecForward.ToVector());
 			}
 			Msg("Restored "+cnt+" "+classname+", out of "+entList.len()+" on the map.\n");
+		}
+
+		foreach(model,entList in tModelEnts)
+		{
+			local firstItems = m_firstRoundModelEnts[model];
+			// count to keep alive
+			local cnt = firstItems.len();
+			if(cnt > entList.len())
+			{
+				Msg("Warning! Not enough "+model+" spawned this round to match R1! ("+entList.len()+" < "+cnt+")\n");
+				cnt = entList.len();
+			}
+
+			for(local i = cnt; i < entList.len(); i++)
+			{
+				KillEntity(entList[i]);
+			}
+
+			for(local i = 0; i < cnt; i++)
+			{
+				entList[i].SetOrigin(firstItems[i].m_vecOrigin.ToVector());
+				//entList[i].SetForwardVector(firstItems[i].m_vecForward.ToVector());
+			}
+			Msg("Restored "+cnt+" "+model+", out of "+entList.len()+" on the map.\n");
 		}
 	}
 	function OnRoundStart(roundNumber)
@@ -392,13 +466,14 @@ class Modules.ItemControl extends GameState.GameStateListener
 	// point to global mapinfo
 	m_pMapInfo = null;
 	// Table of entity classname, limit value pairs
-	// We do a roundstart remove of these items to keep the removals from being too greedy. Health items are odd.
-	// Melee weapons work better here, too. Plus we get the chance to set their count!
 	m_removalTable = null;
+	m_modelRemovalTable = null;
 	m_saferoomRemoveList = null;
 
 	m_firstRoundEnts = null;
+	m_firstRoundModelEnts = null;
 	static ArrayToTable = Utils.ArrayToTable;
+	static ArrayRemoveByValue = Utils.ArrayRemoveByValue;
 	static ItemInfo = Utils.ItemInfo;
 	static KillEntity = Utils.KillEntity;
 };

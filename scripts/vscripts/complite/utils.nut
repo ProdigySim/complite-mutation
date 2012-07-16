@@ -305,6 +305,21 @@ Utils.ArrayRemoveByValue <- function (arr, value)
 	}
 }
 
+// return index on found
+// return -1 on not found
+Utils.ArraySearchByValue <- function (arr, value)
+{
+	foreach(id,val in arr)
+	{
+		if(val == value)
+		{
+			return id;
+			break;
+		}
+	}
+	return -1;
+}
+
 Utils.IsEntityInMoveHeirarchy <- function (moveChildEnt, moveParentCandidate)
 {
 	local curEnt = moveChildEnt;
