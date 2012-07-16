@@ -708,7 +708,7 @@ class Modules.GasCanControl extends GameState.GameStateListener {
 
 		local ent = null;
 		local list = [];
-		while((ent = m_pEntities.FindByModel(ent, "models/props_junk/gascan001a.mdl").weakref()) != null)
+		while((ent = m_pEntities.FindByModel(ent, "models/props_junk/gascan001a.mdl")) != null)
 		{
 			list.push(ent.weakref());
 		}
