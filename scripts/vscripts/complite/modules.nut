@@ -414,7 +414,16 @@ class Modules.ItemControl extends GameState.GameStateListener
 
 			for(local i = 0; i < cnt; i++)
 			{
-				entList[i].SetOrigin(firstItems[i].m_vecOrigin.ToVector());
+				local vec = VectorClone(firstItems[i].m_vecOrigin);
+				
+				// Hack. To avoid crashing the server by placing entities on top of each other here, 
+				// we'll just offset the placement of each entity by 1 unit. 
+				// Alternative solutions: 
+				// 1. Check all tracked entity positions for conflicts and resolve through <insert algorithm here>
+				// 2. Move all entities to offset by 1 unit, wait 1 frame, move entities to original (un-offset) position (same frame also crashes)
+				// 3. Convert this code to kill/create entities instead of kill/shuffle entities (not possible atm)
+				vec.z += 1.0;
+				entList[i].SetOrigin(vec.ToVector());
 				//entList[i].SetForwardVector(firstItems[i].m_vecForward.ToVector());
 			}
 			Msg("Restored "+cnt+" "+classname+", out of "+entList.len()+" on the map.\n");
@@ -476,6 +485,7 @@ class Modules.ItemControl extends GameState.GameStateListener
 	static ArrayRemoveByValue = Utils.ArrayRemoveByValue;
 	static ItemInfo = Utils.ItemInfo;
 	static KillEntity = Utils.KillEntity;
+	static VectorClone = Utils.VectorClone;
 };
 
 class Modules.MeleeWeaponControl extends GameState.GameStateListener {
