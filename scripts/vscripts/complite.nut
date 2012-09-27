@@ -23,7 +23,7 @@ if(CompLite.Globals.GetCurrentRound() > 0)
 	return;
 }
 
-Msg("Activating Mutation CompLite v3.5\n");
+Msg("Activating Mutation CompLite v3.6\n");
 
 DirectorOptions.ActiveChallenge <- 1
 DirectorOptions.cm_ProhibitBosses <- 0
